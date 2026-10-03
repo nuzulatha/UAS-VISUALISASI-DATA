@@ -28,6 +28,10 @@ def load_data():
     df_miskin = pd.read_excel('data/Persentase_Penduduk_Miskin_dengan_Kode.xlsx')
     df_pdrb = pd.read_excel('data/PDRB_ADHB_KODE.xlsx')
 
+    # TAMBAHKAN DUA BARIS INI: Paksa semua nama kolom menjadi teks (string)
+    df_miskin.columns = df_miskin.columns.astype(str)
+    df_pdrb.columns = df_pdrb.columns.astype(str)
+
     # Filter tahun 2025 dan sesuaikan nama kolom
     df_miskin_25 = df_miskin[['Kode_Wilayah', 'Kab/Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
     df_pdrb_25 = df_pdrb[['Kode_Wilayah', '2025']].rename(columns={'2025': 'PDRB'})
