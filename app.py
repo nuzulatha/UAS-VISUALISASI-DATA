@@ -264,7 +264,7 @@ fig_tree = px.treemap(
     path=['Level_1', 'Level_2', 'Level_3'], 
     values='Maret_2025',                    
     color='Pertumbuhan (%)',                
-    color_continuous_scale='YlOrRd',
+    color_continuous_scale='RdYlGn',
     color_continuous_midpoint=0, 
     title="Peta Struktur Pengeluaran (Treemap)"
 )
@@ -285,7 +285,7 @@ fig_sun = px.sunburst(
     path=['Level_1', 'Level_2', 'Level_3'], 
     values='Maret_2025',                    
     color='Pertumbuhan (%)',                
-    color_continuous_scale='YlOrRd',
+    color_continuous_scale='RdYlGn',
     color_continuous_midpoint=0, 
     title="Cincin Struktur Pengeluaran (Sunburst)"
 )
