@@ -22,15 +22,6 @@ COLOR_DARK = '#1a432b'
 COLOR_HIGHLIGHT = '#ff9f43' # Warna kontras untuk Highlight/Pencilan
 
 # =====================================================================
-# PENGATURAN HALAMAN (WEB STORY MODE)
-# =====================================================================
-st.set_page_config(
-    page_title="Kisah Ekonomi Nusantara", 
-    layout="wide", 
-    initial_sidebar_state="collapsed"
-)
-
-# =====================================================================
 # FUNGSI PEMUATAN & PEMBERSIHAN DATA 
 # =====================================================================
 @st.cache_data 

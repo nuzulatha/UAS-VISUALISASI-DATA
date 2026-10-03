@@ -1,15 +1,6 @@
 [theme]
-# Warna utama (berlaku untuk tombol, slider, dan elemen yang disorot) - Terracotta
 primaryColor = "#C0392B"
-
-# Warna latar belakang utama website - Off-white/Cream (Nyaman di mata)
 backgroundColor = "#FAF9F6"
-
-# Warna latar belakang sekunder (untuk sidebar, area filter, dan latar belakang kotak)
 secondaryBackgroundColor = "#F1F0EA"
-
-# Warna teks utama - Dark Charcoal (Kontras yang lembut, bukan hitam pekat)
 textColor = "#2D3436"
-
-# Gaya font tulisan (sans-serif untuk kesan modern dan bersih)
 font = "sans serif"
