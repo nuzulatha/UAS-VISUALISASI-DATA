@@ -82,23 +82,31 @@ st.write("""
 Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan. 
 """)
 
-# 🌟 FITUR BARU: SLIDER WAKTU INTERAKTIF
-st.markdown("### ⏳ Mesin Waktu Ekonomi")
-selected_year = st.slider(
-    "Geser tahun di bawah ini untuk melihat bagaimana kemiskinan dan ekonomi berevolusi:", 
-    min_value=2021, max_value=2025, value=2025, step=1
-)
+st.write("""
+Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan. 
+""")
+st.divider()
+
+# --- BAB 1: Peta ---
+# Membagi layar menjadi 2 kolom: kiri (lebar) untuk teks, kanan (kecil) untuk filter tahun
+col_teks, col_tahun = st.columns([4, 1])
+
+with col_teks:
+    st.markdown("### Wajah Kesejahteraan dari Udara")
+    st.write("Area yang tersapu warna **merah** menunjukkan tingginya persentase kemiskinan. Sementara itu, **pendaran cahaya hijau** adalah denyut nadi PDRB (dalam Triliun Rupiah) yang terkonsentrasi di wilayah tersebut.")
+
+with col_tahun:
+    # Menggunakan Dropdown (Selectbox) agar ringkas dan menempel dengan peta
+    selected_year = st.selectbox(
+        "⏳ Pilih Tahun:", 
+        options=[2021, 2022, 2023, 2024, 2025], 
+        index=4 # Default otomatis ke urutan terakhir (2025)
+    )
 
 # FILTER DATA BERDASARKAN TAHUN YANG DIPILIH
 gdf_year = gdf[gdf['Tahun'] == str(selected_year)].copy()
 
-st.divider()
-
-# --- BAB 1: Peta ---
-st.markdown(f"### Wajah Kesejahteraan dari Udara (Tahun {selected_year})")
-st.write("Area yang tersapu warna **merah** menunjukkan tingginya persentase kemiskinan. Sementara itu, **pendaran cahaya hijau** adalah denyut nadi PDRB (dalam Triliun Rupiah) yang terkonsentrasi di wilayah tersebut.")
-
-# HIGHLIGHT CARD (Otomatis berubah sesuai tahun slider)
+# HIGHLIGHT CARD (Otomatis berubah sesuai tahun)
 daerah_miskin_max = gdf_year.loc[gdf_year['Pct_Miskin'].idxmax()]
 daerah_pdrb_max = gdf_year.loc[gdf_year['PDRB'].idxmax()]
 
@@ -108,7 +116,7 @@ with col1:
 with col2:
     st.success(f"💎 **Pusat Kemakmuran ({selected_year})**\n\n{daerah_pdrb_max['Kab/Kota']} ({daerah_pdrb_max['PDRB']} Triliun)")
 with col3:
-    st.info("💡 **Jelajahi Sendiri**\n\nScroll untuk mendekat (*zoom*), atau arahkan kursor ke wilayah manapun untuk detail.")
+    st.info("💡 **Jelajahi Sendiri**\n\nScroll untuk mendekat (*zoom*), atau arahkan kursor ke wilayah manapun.")
 
 # Render Peta dengan Data Tahun Terpilih
 fig_map = px.choropleth_map(
