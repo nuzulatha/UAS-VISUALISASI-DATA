@@ -12,7 +12,7 @@ st.title("📊 Dashboard Profil Sosial-Ekonomi Indonesia")
 st.write("Eksplorasi data kemiskinan, multivariat, dan struktur pengeluaran.")
 
 # %% Blok 2: Load dan Preprocessing Data (Bisa di-Run untuk cek error data)
-# @st.cache_data # Mencegah data diload berulang kali saat web berjalan
+@st.cache_data # Mencegah data diload berulang kali saat web berjalan
 def load_data():
     # --- Data Hierarki (Tab 3) ---
     data = [
@@ -27,19 +27,50 @@ def load_data():
     gdf_batas = gpd.read_file('data/kab_kota.geojson')
     df_miskin = pd.read_excel('data/Persentase_Penduduk_Miskin_dengan_Kode.xlsx')
     df_pdrb = pd.read_excel('data/PDRB_ADHB_KODE.xlsx')
+    gdf_batas = gpd.read_file('data/kab_kota.geojson')
 
-    df_pdrb.columns = df_pdrb.columns.astype(str)
+    print("Kolom Peta GeoJSON:", gdf_batas.columns.tolist()) # TAMBAHKAN INI
+    
+    df_miskin.columns = [str(col).replace('.0', '').strip() for col in df_miskin.columns]
+    df_pdrb.columns = [str(col).replace('.0', '').strip() for col in df_pdrb.columns]
+
+    # Cek outputnya (pasti semuanya sudah pakai tanda kutip dan rapi!)
+    print("Kolom Miskin :", df_miskin.columns.tolist())
+    print("Kolom PDRB :", df_pdrb.columns.tolist())
 
     # Filter tahun 2025 dan sesuaikan nama kolom
     df_miskin_25 = df_miskin[['Kode_Wilayah', 'Kab/Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
     df_pdrb_25 = df_pdrb[['Kode_Wilayah', '2025']].rename(columns={'2025': 'PDRB'})
 
-    # Menggabungkan (Merge) Data Atribut ke Geometri Spasial menggunakan Kode_Wilayah
-    gdf = gdf_batas.merge(df_miskin_25, on='Kode_Wilayah', how='left')
-    gdf = gdf.merge(df_pdrb_25, on='Kode_Wilayah', how='left')
+    # Ganti 'KODE_KAB' di bawah ini dengan nama kolom asli yang Anda temukan dari Langkah 1
+    kolom_kode_peta = 'code' 
     
+    # --- PROSES MERGE DATA ---
+    
+    # 1. Pastikan ketiga kunci wilayah menjadi string (teks)
+    gdf_batas['code'] = gdf_batas['code'].astype(str)
+    df_miskin_25['Kode_Wilayah'] = df_miskin_25['Kode_Wilayah'].astype(str)
+    df_pdrb_25['Kode_Wilayah'] = df_pdrb_25['Kode_Wilayah'].astype(str)
+
+    # 2. "Sapu Bersih" Jebakan Desimal (Memaksa '11.1' kembali menjadi '11.10')
+    def rapikan_kode(x):
+        try:
+            return f"{float(x):.2f}"
+        except ValueError:
+            return str(x)
+
+    gdf_batas['code'] = gdf_batas['code'].apply(rapikan_kode)
+    df_miskin_25['Kode_Wilayah'] = df_miskin_25['Kode_Wilayah'].apply(rapikan_kode)
+    df_pdrb_25['Kode_Wilayah'] = df_pdrb_25['Kode_Wilayah'].apply(rapikan_kode)
+
+    # 3. Eksekusi merge (Sekarang dijamin aman!)
+    gdf = gdf_batas.merge(df_miskin_25, left_on='code', right_on='Kode_Wilayah', how='left')
+    gdf = gdf.merge(df_pdrb_25, left_on='code', right_on='Kode_Wilayah', how='left')
+
     # Titik pusat untuk lingkaran PDRB
-    gdf['centroid'] = gdf.geometry.centroid
+    # Ekstrak koordinat X dan Y menjadi angka biasa agar aman dibaca Folium
+    gdf['centroid_x'] = gdf.geometry.centroid.x
+    gdf['centroid_y'] = gdf.geometry.centroid.y
 
     return df_pengeluaran, gdf
 
@@ -79,8 +110,8 @@ with tab1:
         geo_data=gdf,
         name='Persentase Kemiskinan (%)',
         data=gdf,
-        columns=['Kode_Wilayah', 'Pct_Miskin'],
-        key_on='feature.properties.Kode_Wilayah', # Pastikan properti di geojson Anda juga bernama persis seperti ini
+        columns=['code', 'Pct_Miskin'],
+        key_on='feature.properties.code', # Pastikan properti di geojson Anda juga bernama persis seperti ini
         fill_color='YlOrRd',
         fill_opacity=0.7,
         line_opacity=0.2,
@@ -102,7 +133,7 @@ with tab1:
             radius_size = row['PDRB'] / 10000 
             
             folium.CircleMarker(
-                location=[row['centroid'].y, row['centroid'].x],
+                location=[row['centroid_y'], row['centroid_x']],
                 radius=radius_size,
                 color='blue',
                 fill=True,
@@ -200,6 +231,7 @@ with tab1:
 #     localize=True
 # )
 # choropleth.geojson.add_child(tooltip)
+# kode
 
 # # 5. Layer 2: Proportional Symbol (PDRB ADHB)
 # pdrb_layer = folium.FeatureGroup(name="PDRB ADHB (Simbol Ukuran)")
