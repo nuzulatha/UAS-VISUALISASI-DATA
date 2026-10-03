@@ -40,17 +40,17 @@ st.title("Peta Kesejahteraan dan Ekonomi (2025)")
 
 # 1. Membaca Data dari Folder 'data'
 # (Asumsi data sudah dibersihkan dan memiliki kolom kunci yang sama, misal 'KODE_KAB')
-gdf_batas = gpd.read_file('data/batas_wilayah_admin_kabkot_indo.geojson')
-df_miskin = pd.read_excel('data/Persentase_Kemiskinan_2021-2025.xlsx')
-df_pdrb = pd.read_excel('data/PDRB_ADHB_2021-2025.xlsx')
+gdf_batas = gpd.read_file('data/kab_kota.geojson')
+df_miskin = pd.read_excel('data/Persentase_Penduduk_Miskin_dengan_Kode.xlsx')
+df_pdrb = pd.read_excel('data/PDRB_ADHB_KODE.xlsx')
 
 # Filter untuk mengambil tahun 2025 saja (sesuaikan nama kolom Anda)
-df_miskin_25 = df_miskin[['KODE_KAB', 'Kab_Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
-df_pdrb_25 = df_pdrb[['KODE_KAB', '2025']].rename(columns={'2025': 'PDRB'})
+df_miskin_25 = df_miskin[['Kode Wilayah', 'Kab_Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
+df_pdrb_25 = df_pdrb[['Kode Wilayah', '2025']].rename(columns={'2025': 'PDRB'})
 
 # 2. Menggabungkan (Merge) Data Atribut ke Geometri Spasial
-gdf = gdf_batas.merge(df_miskin_25, on='KODE_KAB', how='left')
-gdf = gdf.merge(df_pdrb_25, on='KODE_KAB', how='left')
+gdf = gdf_batas.merge(df_miskin_25, on='Kode Wilayah', how='left')
+gdf = gdf.merge(df_pdrb_25, on='Kode Wilayah', how='left')
 
 # Mendapatkan titik pusat (centroid) tiap kab/kota untuk meletakkan simbol lingkaran PDRB
 gdf['centroid'] = gdf.geometry.centroid
@@ -63,7 +63,7 @@ choropleth = folium.Choropleth(
     geo_data=gdf,
     name='Persentase Kemiskinan (%)',
     data=gdf,
-    columns=['KODE_KAB', 'Pct_Miskin'],
+    columns=['Kode Wilayah', 'Pct_Miskin'],
     key_on='feature.properties.KODE_KAB',
     fill_color='YlOrRd', # Justifikasi warna: kuning ke merah
     fill_opacity=0.7,
