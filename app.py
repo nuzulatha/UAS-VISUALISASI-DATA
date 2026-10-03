@@ -36,12 +36,9 @@ st.set_page_config(
 @st.cache_data 
 def load_data():
     # --- 1. Data Hierarki Pengeluaran ---
-    data = [
-        ['Total', 'Makanan', 'Padi-padian', 94641, 89278],
-        ['Total', 'Makanan', 'Rokok', 94476, 91708],
-        ['Total', 'Bukan Makanan', 'Perumahan', 391751, 398657]
-    ]
-    df_pengeluaran = pd.DataFrame(data, columns=['Level_1', 'Level_2', 'Level_3', 'Maret_2024', 'Maret_2025'])
+    df_pengeluaran = pd.read_excel('data/Rata-Rata Pengeluaran Ruta Per Komoditi Maret 2024-2025.xlsx')
+    
+    # Menghitung persentase pertumbuhan dari 2024 ke 2025 untuk gradasi warna
     df_pengeluaran['Pertumbuhan (%)'] = ((df_pengeluaran['Maret_2025'] - df_pengeluaran['Maret_2024']) / df_pengeluaran['Maret_2024']) * 100
 
     # --- 2. Data Geospasial & Ekonomi ---
@@ -348,3 +345,4 @@ st.info("""
 *   **Pencilan (Outlier):** Provinsi yang posisinya terasing/menjauh dari kerumunan utama di grafik PCA adalah provinsi dengan anomali (misalnya DKI Jakarta yang biasanya memiliki IPM dan PDRB ekstrem tinggi, atau Papua dengan kemiskinan ekstrem tinggi).
 *   **Profil Radar:** Bentuk jaring yang condong mendekati batas luar menandakan performa yang sangat baik di atas rata-rata nasional pada indikator tersebut.
 """)
+
