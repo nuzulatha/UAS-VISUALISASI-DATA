@@ -122,10 +122,6 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.write("""
 Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan. 
 """)
-
-st.write("""
-Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan. 
-""")
 st.divider()
 
 # --- BAB 1: Peta ---
