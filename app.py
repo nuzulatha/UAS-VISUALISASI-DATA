@@ -270,8 +270,11 @@ fig_tree = px.treemap(
 )
 fig_tree.update_traces(
     textinfo='label+percent parent',
-    hovertemplate='<b>%{label}</b><br>Pengeluaran 2025: %{value}<br>Pertumbuhan: %{color:.2f}%<extra></extra>'
+    # Tambahkan format ,.0f pada value agar angka diformat dengan pemisah ribuan
+    hovertemplate='<b>%{label}</b><br>Pengeluaran 2025: %{value:,.0f}<br>Pertumbuhan: %{color:.2f}%<extra></extra>'
 )
+# 🌟 KUNCI FORMAT INDONESIA: Ubah pemisah desimal jadi koma, pemisah ribuan jadi titik
+fig_tree.update_layout(separators=",.")
 st.plotly_chart(fig_tree, use_container_width=True)
 
 st.divider() # Garis pemisah antar grafik
@@ -288,7 +291,22 @@ fig_sun = px.sunburst(
 )
 fig_sun.update_traces(
     textinfo='none', 
-    hovertemplate='<b>Kategori: %{label}</b><br>Pengeluaran 2025: %{value}<br>Pertumbuhan dari 2024: %{color:.2f}%<extra></extra>'
+    # Tambahkan format ,.0f pada value
+    hovertemplate='<b>Kategori: %{label}</b><br>Pengeluaran 2025: %{value:,.0f}<br>Pertumbuhan dari 2024: %{color:.2f}%<extra></extra>'
+)
+# 🌟 KUNCI FORMAT INDONESIA: Ubah pemisah desimal jadi koma, pemisah ribuan jadi titik
+fig_sun.update_layout(separators=",.")
+
+# Menghitung total dan menaruhnya di lingkaran tengah (Sudah pakai format Indonesia)
+total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
+total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
+
+fig_sun.add_annotation(
+    text=f"<b>TOTAL</b><br>Rp {total_format}",
+    x=0.5, y=0.5, 
+    showarrow=False,
+    font=dict(size=15, color="black"),
+    align="center"
 )
 
 st.plotly_chart(fig_sun, use_container_width=True)
@@ -301,13 +319,13 @@ st.write("Dua variabel yang kita ukur (Total Pengeluaran & Pertumbuhan) mencerit
 col_c1, col_c2, col_c3 = st.columns(3)
 
 with col_c1:
-    st.info("📦 **Tulang Punggung (Ukuran Area)**\n\nKotak atau irisan yang paling luas mewakili penyedot anggaran terbesar (misalnya 'Perumahan' atau 'Makanan'). Ini adalah pengeluaran primer yang tidak bisa dihindari oleh masyarakat.")
+    st.info("📦 **Tulang Punggung (Ukuran Area)**\n\nKotak atau irisan yang paling luas mewakili penyedot anggaran terbesar. Ini adalah pengeluaran primer yang tidak bisa dihindari oleh masyarakat.")
 
 with col_c2:
-    st.success("📈 **Prioritas Baru (Warna Hijau)**\n\nArea dengan warna hijau pekat menandakan komoditas yang anggarannya meroket di tahun 2025. Ini bisa berarti pergeseran gaya hidup, atau masyarakat terpaksa membayar lebih karena inflasi harga di sektor tersebut.")
+    st.success("📈 **Prioritas Baru (Warna Hijau)**\n\nArea dengan warna hijau pekat menandakan komoditas yang anggarannya meroket di tahun 2025. Ini bisa berarti pergeseran gaya hidup atau dampak inflasi di sektor tersebut.")
 
 with col_c3:
-    st.error("📉 **Ikat Pinggang (Warna Merah)**\n\nArea berwarna merah menyoroti pengeluaran yang paling banyak dipangkas (minus). Saat ekonomi sulit, pos-pos berwarna merah inilah yang pertama kali dikorbankan oleh rumah tangga.")
+    st.error("📉 **Ikat Pinggang (Warna Merah)**\n\nArea berwarna merah menyoroti pengeluaran yang paling banyak dipangkas (minus). Saat ekonomi sulit, pos-pos berwarna merah inilah yang pertama kali dikorbankan.")
 
 st.markdown("<br><br><center><p style='color: gray;'><i>Sebuah eksplorasi data visual. Dibuat untuk Tugas Akhir Visualisasi Data.</i></p></center>", unsafe_allow_html=True)
 
