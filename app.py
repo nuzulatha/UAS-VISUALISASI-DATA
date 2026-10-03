@@ -132,15 +132,26 @@ with col2:
 with col3:
     st.info("💡 **Jelajahi Sendiri**\n\nScroll untuk mendekat (*zoom*), atau arahkan kursor ke wilayah manapun.")
 
-# Render Peta dengan Data Tahun Terpilih
+# 1. Tangani data yang kosong (NaN) agar tidak bolong transparan
+gdf_year['Pct_Miskin_Clean'] = gdf_year['Pct_Miskin'].fillna(-1) # Beri penanda khusus -1 untuk data kosong
+
+# 2. Render Peta Utama
 fig_map = px.choropleth_map(
-    gdf_year, geojson=gdf_year.geometry, locations=gdf_year.index,
-    color='Pct_Miskin', color_continuous_scale="YlOrRd",
-    range_color=[gdf['Pct_Miskin'].min(), gdf['Pct_Miskin'].max()], # Mengunci skala warna agar tidak lompat-lompat saat ganti tahun
-    map_style="white-bg", zoom=4, center={"lat": -0.789, "lon": 113.921},
-    opacity=0.9, hover_name='Kab/Kota',
-    hover_data={'Pct_Miskin': ':.2f', 'PDRB': ':.2f'}, 
-    labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Triliun)', 'index': 'Kode ID'}
+    gdf_year, 
+    geojson=gdf_year.geometry, 
+    locations=gdf_year.index,
+    color='Pct_Miskin_Clean', 
+    color_continuous_scale="YlOrRd",
+    # Jika nilainya -1 (kosong), warnai dengan abu-abu terang agar tidak bolong
+    # (Catatan: Plotly continuous scale bisa diatur, atau kita pisah dengan layer warna solid di bawah)
+    range_color=[0, gdf['Pct_Miskin'].max()],
+    map_style="white-bg", 
+    zoom=4, 
+    center={"lat": -0.789, "lon": 113.921},
+    opacity=0.9, 
+    hover_name='Kab/Kota',
+    hover_data={'Pct_Miskin': ':.2f', 'PDRB': ':.2f', 'Pct_Miskin_Clean': False}, 
+    labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Triliun)'}
 )
 
 fig_map.update_layout(
@@ -161,7 +172,31 @@ fig_bubble.update_traces(marker=dict(color='#00FF00', opacity=0.4))
 for trace in fig_bubble.data:
     fig_map.add_trace(trace)
 
-st.plotly_chart(fig_map, use_container_width=True)
+# 🌟 LAYER DASAR ABU-ABU (Menutup semua celah bolong agar tidak transparan)
+fig_base = px.choropleth_map(
+    gdf_year, geojson=gdf_year.geometry, locations=gdf_year.index,
+    color_discrete_sequence=['#d3d3d3'], # Warna abu-abu dasar
+    map_style="white-bg", zoom=4, center={"lat": -0.789, "lon": 113.921}
+)
+
+# Masukkan satelit di bawah layer dasar
+fig_base.update_layout(
+    map_layers=[{"below": 'traces', "sourcetype": "raster", "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]}],
+    margin={"r":0,"t":0,"l":0,"b":0} 
+)
+
+# Timpa peta utama (kemiskinan) di atas layer abu-abu
+for trace in fig_map.data:
+    fig_base.add_trace(trace)
+
+# Timpa lagi lingkaran bubble PDRB (hijau) di urutan paling atas
+for trace in fig_bubble.data:
+    fig_base.add_trace(trace)
+
+# Tampilkan peta final yang sudah tertutup rapat
+st.plotly_chart(fig_base, use_container_width=True)
+
+# st.plotly_chart(fig_map, use_container_width=True)
 
 st.success(f"📌 **Catatan {selected_year}:** Peta di atas mengungkap bahwa pendaran hijau kemakmuran seringkali hanya terpusat pada titik tertentu, meninggalkan wilayah sekitarnya dalam balutan warna merah pekat.")
 st.divider()
