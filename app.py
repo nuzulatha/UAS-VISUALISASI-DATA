@@ -172,30 +172,6 @@ fig_bubble.update_traces(marker=dict(color='#00FF00', opacity=0.4))
 for trace in fig_bubble.data:
     fig_map.add_trace(trace)
 
-# 🌟 LAYER DASAR ABU-ABU (Menutup semua celah bolong agar tidak transparan)
-fig_base = px.choropleth_map(
-    gdf_year, geojson=gdf_year.geometry, locations=gdf_year.index,
-    color_discrete_sequence=['#d3d3d3'], # Warna abu-abu dasar
-    map_style="white-bg", zoom=4, center={"lat": -0.789, "lon": 113.921}
-)
-
-# Masukkan satelit di bawah layer dasar
-fig_base.update_layout(
-    map_layers=[{"below": 'traces', "sourcetype": "raster", "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]}],
-    margin={"r":0,"t":0,"l":0,"b":0} 
-)
-
-# Timpa peta utama (kemiskinan) di atas layer abu-abu
-for trace in fig_map.data:
-    fig_base.add_trace(trace)
-
-# Timpa lagi lingkaran bubble PDRB (hijau) di urutan paling atas
-for trace in fig_bubble.data:
-    fig_base.add_trace(trace)
-
-# Tampilkan peta final yang sudah tertutup rapat
-st.plotly_chart(fig_base, use_container_width=True)
-
 st.plotly_chart(fig_map, use_container_width=True)
 
 st.success(f"📌 **Catatan {selected_year}:** Peta di atas mengungkap bahwa pendaran hijau kemakmuran seringkali hanya terpusat pada titik tertentu, meninggalkan wilayah sekitarnya dalam balutan warna merah pekat.")
