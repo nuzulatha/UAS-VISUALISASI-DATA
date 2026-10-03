@@ -5,3 +5,5 @@ openpyxl
 geopandas
 folium
 streamlit-folium
+libpysal
+esda
