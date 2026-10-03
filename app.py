@@ -254,20 +254,40 @@ except Exception as e:
 
 st.divider()
 
-# --- BAB 3: Treemap ---
+# --- BAB 3: Hierarki Pengeluaran (Memenuhi Syarat UAS Multirepresentasi) ---
 st.markdown("### Konklusi: Ke Mana Uang Kita Bermuara?")
-st.write("Terlepas dari fluktuasi ekonomi dari 2021 hingga saat ini, prioritas bertahan hidup masyarakat bermuara pada struktur pengeluaran. Proporsi kotak di bawah ini menunjukkan lonjakan dan pergeseran prioritas konsumsi terbaru.")
+st.write("Terlepas dari fluktuasi ekonomi dari 2021 hingga saat ini, prioritas bertahan hidup masyarakat bermuara pada struktur pengeluaran. Klik pada kategori mana pun (misal: 'Makanan') untuk melakukan *drill-down/zoom* dan melihat rincian di dalamnya secara spesifik.")
 
-fig_tree = px.treemap(
-    df_pengeluaran, 
-    path=['Level_1', 'Level_2', 'Level_3'], 
-    values='Maret_2025', 
-    color='Pertumbuhan (%)', 
-    color_continuous_scale='RdYlGn'
-)
-st.plotly_chart(fig_tree, use_container_width=True)
+# Membuat Tab agar 2 representasi grafik terlihat rapi
+tab_treemap, tab_sunburst = st.tabs(["🔲 Visualisasi Treemap", "🎯 Visualisasi Sunburst"])
 
-st.info("📌 **Catatan:** Gradasi warna hijau menyoroti lonjakan pertumbuhan prioritas konsumsi, sementara warna merah menandakan penyusutan alokasi anggaran rumah tangga.")
+with tab_treemap:
+    # Representasi 1: Treemap
+    fig_tree = px.treemap(
+        df_pengeluaran, 
+        path=['Level_1', 'Level_2', 'Level_3'], # 3 Level Hierarki & Breadcrumb
+        values='Maret_2025',                    # Ukuran kotak (Variabel 1)
+        color='Pertumbuhan (%)',                # Gradasi warna (Variabel 2)
+        color_continuous_scale='RdYlGn',
+        title="Peta Struktur Pengeluaran (Treemap)"
+    )
+    # Memaksa warna font breadcrumb agar terlihat jelas
+    fig_tree.update_traces(root_color="lightgrey")
+    st.plotly_chart(fig_tree, use_container_width=True)
+
+with tab_sunburst:
+    # Representasi 2: Sunburst (Lingkaran berlapis)
+    fig_sun = px.sunburst(
+        df_pengeluaran,
+        path=['Level_1', 'Level_2', 'Level_3'], # 3 Level Hierarki & Breadcrumb tengah
+        values='Maret_2025',                    # Lebar irisan cincin (Variabel 1)
+        color='Pertumbuhan (%)',                # Gradasi warna (Variabel 2)
+        color_continuous_scale='RdYlGn',
+        title="Cincin Struktur Pengeluaran (Sunburst)"
+    )
+    st.plotly_chart(fig_sun, use_container_width=True)
+
+st.info("📌 **Catatan:** Luas area (kotak/irisan cincin) menunjukkan besaran total pengeluaran di tahun 2025. Sementara gradasi warna **hijau** menyoroti lonjakan tren konsumsi, dan warna **merah** menandakan penyusutan alokasi anggaran rumah tangga dibanding tahun sebelumnya.")
 
 st.markdown("<br><br><center><p style='color: gray;'><i>Sebuah eksplorasi data visual. Dibuat untuk Tugas Akhir Visualisasi Data.</i></p></center>", unsafe_allow_html=True)
 
