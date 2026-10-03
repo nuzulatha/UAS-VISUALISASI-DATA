@@ -29,3 +29,78 @@ with tab3:
     
     # 4. PERINTAH AJAIB STREAMLIT: Memunculkan grafik ke web
     st.plotly_chart(fig, use_container_width=True)
+
+import streamlit as st
+import geopandas as gpd
+import pandas as pd
+import folium
+from streamlit_folium import st_folium
+
+st.title("Peta Kesejahteraan dan Ekonomi (2025)")
+
+# 1. Membaca Data dari Folder 'data'
+# (Asumsi data sudah dibersihkan dan memiliki kolom kunci yang sama, misal 'KODE_KAB')
+gdf_batas = gpd.read_file('data/batas_wilayah_admin_kabkot_indo.geojson')
+df_miskin = pd.read_excel('data/Persentase_Kemiskinan_2021-2025.xlsx')
+df_pdrb = pd.read_excel('data/PDRB_ADHB_2021-2025.xlsx')
+
+# Filter untuk mengambil tahun 2025 saja (sesuaikan nama kolom Anda)
+df_miskin_25 = df_miskin[['KODE_KAB', 'Kab_Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
+df_pdrb_25 = df_pdrb[['KODE_KAB', '2025']].rename(columns={'2025': 'PDRB'})
+
+# 2. Menggabungkan (Merge) Data Atribut ke Geometri Spasial
+gdf = gdf_batas.merge(df_miskin_25, on='KODE_KAB', how='left')
+gdf = gdf.merge(df_pdrb_25, on='KODE_KAB', how='left')
+
+# Mendapatkan titik pusat (centroid) tiap kab/kota untuk meletakkan simbol lingkaran PDRB
+gdf['centroid'] = gdf.geometry.centroid
+
+# 3. Inisialisasi Peta Dasar Folium (Titik tengah Indonesia)
+m = folium.Map(location=[-0.789, 113.921], zoom_start=5, tiles='CartoDB positron')
+
+# 4. Layer 1: Choropleth (Persentase Kemiskinan)
+choropleth = folium.Choropleth(
+    geo_data=gdf,
+    name='Persentase Kemiskinan (%)',
+    data=gdf,
+    columns=['KODE_KAB', 'Pct_Miskin'],
+    key_on='feature.properties.KODE_KAB',
+    fill_color='YlOrRd', # Justifikasi warna: kuning ke merah
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    legend_name='Persentase Penduduk Miskin 2025 (%)'
+).add_to(m)
+
+# Menambahkan Tooltip Interaktif untuk Choropleth
+tooltip = folium.GeoJsonTooltip(
+    fields=['Kab_Kota', 'Pct_Miskin'],
+    aliases=['Kabupaten/Kota:', 'Kemiskinan (%):'],
+    localize=True
+)
+choropleth.geojson.add_child(tooltip)
+
+# 5. Layer 2: Proportional Symbol (PDRB ADHB)
+pdrb_layer = folium.FeatureGroup(name="PDRB ADHB (Simbol Ukuran)")
+for idx, row in gdf.iterrows():
+    if pd.notnull(row['PDRB']):
+        # Skala ukuran lingkaran disesuaikan (dibagi angka tertentu agar tidak menutupi peta)
+        radius_size = row['PDRB'] / 10000 
+        
+        folium.CircleMarker(
+            location=[row['centroid'].y, row['centroid'].x],
+            radius=radius_size,
+            color='blue',
+            fill=True,
+            fill_color='blue',
+            fill_opacity=0.5,
+            tooltip=f"{row['Kab_Kota']} - PDRB: {row['PDRB']} Miliar"
+        ).add_to(pdrb_layer)
+
+pdrb_layer.add_to(m)
+
+# 6. Menambahkan Kontrol Layer (Bisa menyalakan/mematikan peta tertentu)
+folium.LayerControl(position='topright').add_to(m)
+
+# 7. Memunculkan di Web Streamlit (Zoom, Pan sudah aktif otomatis)
+st_folium(m, width=1000, height=600)
+
