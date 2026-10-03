@@ -43,23 +43,24 @@ def load_data():
     df_miskin_melt = df_miskin.melt(id_vars=['Kode_Wilayah', 'Kab/Kota'], value_vars=tahun_list, var_name='Tahun', value_name='Pct_Miskin')
     df_pdrb_melt = df_pdrb.melt(id_vars=['Kode_Wilayah'], value_vars=tahun_list, var_name='Tahun', value_name='PDRB')
 
-    # --- 4. Proses Sapu Bersih Kode Wilayah ---
-    def rapikan_kode(x):
-        try:
-            return f"{float(x):.2f}"
-        except ValueError:
-            return str(x)
+    # --- 4. Proses Sapu Bersih Kode Wilayah (Tingkat Ekstrem) ---
+    def bersihkan_kode(x):
+        x = str(x).strip() # Ubah ke teks & buang spasi
+        if x.endswith('.0'): 
+            x = x[:-2]     # Buang akhiran .0 jika Excel membacanya sebagai float
+        x = x.replace('.', '') # Hapus titik pemisah (agar 31.71 dan 3171 jadi sama)
+        return x
 
-    gdf_batas['code'] = gdf_batas['code'].astype(str).str.strip().apply(rapikan_kode)
-    df_miskin_melt['Kode_Wilayah'] = df_miskin_melt['Kode_Wilayah'].astype(str).str.strip().apply(rapikan_kode)
-    df_pdrb_melt['Kode_Wilayah'] = df_pdrb_melt['Kode_Wilayah'].astype(str).str.strip().apply(rapikan_kode)
+    gdf_batas['code'] = gdf_batas['code'].apply(bersihkan_kode)
+    df_miskin_melt['Kode_Wilayah'] = df_miskin_melt['Kode_Wilayah'].apply(bersihkan_kode)
+    df_pdrb_melt['Kode_Wilayah'] = df_pdrb_melt['Kode_Wilayah'].apply(bersihkan_kode)
 
     # Gabungkan data Miskin dan PDRB berdasarkan Kode dan Tahun
     df_ekonomi = df_miskin_melt.merge(df_pdrb_melt, on=['Kode_Wilayah', 'Tahun'], how='left')
     
     # Gabungkan ke Peta GeoJSON
     gdf = gdf_batas.merge(df_ekonomi, left_on='code', right_on='Kode_Wilayah', how='left')
-
+    
     gdf['centroid_x'] = gdf.geometry.centroid.x
     gdf['centroid_y'] = gdf.geometry.centroid.y
     gdf['Pct_Miskin'] = pd.to_numeric(gdf['Pct_Miskin'], errors='coerce')
