@@ -256,38 +256,58 @@ st.divider()
 
 # --- BAB 3: Hierarki Pengeluaran (Memenuhi Syarat UAS Multirepresentasi) ---
 st.markdown("### Konklusi: Ke Mana Uang Kita Bermuara?")
-st.write("Terlepas dari fluktuasi ekonomi dari 2021 hingga saat ini, prioritas bertahan hidup masyarakat bermuara pada struktur pengeluaran. Klik pada kategori mana pun (misal: 'Makanan') untuk melakukan *drill-down/zoom* dan melihat rincian di dalamnya secara spesifik.")
+st.write("Terlepas dari fluktuasi ekonomi dari 2021 hingga saat ini, prioritas bertahan hidup masyarakat bermuara pada struktur pengeluaran. Klik pada area mana pun untuk melakukan *drill-down/zoom*, atau arahkan kursor Anda untuk melihat rincian spesifik.")
 
-# Membuat Tab agar 2 representasi grafik terlihat rapi
-tab_treemap, tab_sunburst = st.tabs(["🔲 Visualisasi Treemap", "🎯 Visualisasi Sunburst"])
+# Representasi 1: Treemap
+fig_tree = px.treemap(
+    df_pengeluaran, 
+    path=['Level_1', 'Level_2', 'Level_3'], 
+    values='Maret_2025',                    
+    color='Pertumbuhan (%)',                
+    color_continuous_scale='RdYlGn',
+    color_continuous_midpoint=0, 
+    title="Peta Struktur Pengeluaran (Treemap)"
+)
+fig_tree.update_traces(
+    textinfo='label+percent parent',
+    hovertemplate='<b>%{label}</b><br>Pengeluaran 2025: %{value}<br>Pertumbuhan: %{color:.2f}%<extra></extra>'
+)
+st.plotly_chart(fig_tree, use_container_width=True)
 
-with tab_treemap:
-    # Representasi 1: Treemap
-    fig_tree = px.treemap(
-        df_pengeluaran, 
-        path=['Level_1', 'Level_2', 'Level_3'], # 3 Level Hierarki & Breadcrumb
-        values='Maret_2025',                    # Ukuran kotak (Variabel 1)
-        color='Pertumbuhan (%)',                # Gradasi warna (Variabel 2)
-        color_continuous_scale='RdYlGn',
-        title="Peta Struktur Pengeluaran (Treemap)"
-    )
-    # Memaksa warna font breadcrumb agar terlihat jelas
-    fig_tree.update_traces(root_color="lightgrey")
-    st.plotly_chart(fig_tree, use_container_width=True)
+st.divider() # Garis pemisah antar grafik
 
-with tab_sunburst:
-    # Representasi 2: Sunburst (Lingkaran berlapis)
-    fig_sun = px.sunburst(
-        df_pengeluaran,
-        path=['Level_1', 'Level_2', 'Level_3'], # 3 Level Hierarki & Breadcrumb tengah
-        values='Maret_2025',                    # Lebar irisan cincin (Variabel 1)
-        color='Pertumbuhan (%)',                # Gradasi warna (Variabel 2)
-        color_continuous_scale='RdYlGn',
-        title="Cincin Struktur Pengeluaran (Sunburst)"
-    )
-    st.plotly_chart(fig_sun, use_container_width=True)
+# Representasi 2: Sunburst
+fig_sun = px.sunburst(
+    df_pengeluaran,
+    path=['Level_1', 'Level_2', 'Level_3'], 
+    values='Maret_2025',                    
+    color='Pertumbuhan (%)',                
+    color_continuous_scale='RdYlGn',
+    color_continuous_midpoint=0, 
+    title="Cincin Struktur Pengeluaran (Sunburst)"
+)
+fig_sun.update_traces(
+    textinfo='none', 
+    hovertemplate='<b>Kategori: %{label}</b><br>Pengeluaran 2025: %{value}<br>Pertumbuhan dari 2024: %{color:.2f}%<extra></extra>'
+)
 
-st.info("📌 **Catatan:** Luas area (kotak/irisan cincin) menunjukkan besaran total pengeluaran di tahun 2025. Sementara gradasi warna **hijau** menyoroti lonjakan tren konsumsi, dan warna **merah** menandakan penyusutan alokasi anggaran rumah tangga dibanding tahun sebelumnya.")
+st.plotly_chart(fig_sun, use_container_width=True)
+
+# --- KARTU INTERPRETASI (CARDS) ---
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("#### 💡 Membaca Arah Konsumsi Masyarakat")
+st.write("Dua variabel yang kita ukur (Total Pengeluaran & Pertumbuhan) menceritakan realitas ekonomi rumah tangga saat ini:")
+
+col_c1, col_c2, col_c3 = st.columns(3)
+
+with col_c1:
+    st.info("📦 **Tulang Punggung (Ukuran Area)**\n\nKotak atau irisan yang paling luas mewakili penyedot anggaran terbesar (misalnya 'Perumahan' atau 'Makanan'). Ini adalah pengeluaran primer yang tidak bisa dihindari oleh masyarakat.")
+
+with col_c2:
+    st.success("📈 **Prioritas Baru (Warna Hijau)**\n\nArea dengan warna hijau pekat menandakan komoditas yang anggarannya meroket di tahun 2025. Ini bisa berarti pergeseran gaya hidup, atau masyarakat terpaksa membayar lebih karena inflasi harga di sektor tersebut.")
+
+with col_c3:
+    st.error("📉 **Ikat Pinggang (Warna Merah)**\n\nArea berwarna merah menyoroti pengeluaran yang paling banyak dipangkas (minus). Saat ekonomi sulit, pos-pos berwarna merah inilah yang pertama kali dikorbankan oleh rumah tangga.")
 
 st.markdown("<br><br><center><p style='color: gray;'><i>Sebuah eksplorasi data visual. Dibuat untuk Tugas Akhir Visualisasi Data.</i></p></center>", unsafe_allow_html=True)
 
