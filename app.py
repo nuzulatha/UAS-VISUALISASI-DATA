@@ -136,33 +136,29 @@ with col3:
 gdf_year['Pct_Miskin_Clean'] = gdf_year['Pct_Miskin'].fillna(-1) # Beri penanda khusus -1 untuk data kosong
 
 # 2. Render Peta Utama
-# 1. Buat Layer Dasar Abu-Abu untuk menutup seluruh area agar tidak ada yang bolong/transparan
-fig_base = px.choropleth_map(
-    gdf_year, geojson=gdf_year.geometry, locations=gdf_year.index,
-    color_discrete_sequence=['#d3d3d3'], # Warna abu-abu netral untuk wilayah tanpa data
-    map_style="white-bg", zoom=4, center={"lat": -0.789, "lon": 113.921}
-)
-
-fig_base.update_layout(
-    map_layers=[{"below": 'traces', "sourcetype": "raster", "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]}],
-    margin={"r":0,"t":0,"l":0,"b":0} 
-)
-
-# 2. Buat Peta Utama Kemiskinan (Hanya memetakan data yang ada nilainya, abaikan yang NaN)
 fig_map = px.choropleth_map(
-    gdf_year.dropna(subset=['Pct_Miskin']), 
+    gdf_year, 
     geojson=gdf_year.geometry, 
-    locations=gdf_year.dropna(subset=['Pct_Miskin']).index,
-    color='Pct_Miskin', 
+    locations=gdf_year.index,
+    color='Pct_Miskin_Clean', 
     color_continuous_scale="YlOrRd",
-    map_style="white-bg", zoom=4, center={"lat": -0.789, "lon": 113.921},
+    # Jika nilainya -1 (kosong), warnai dengan abu-abu terang agar tidak bolong
+    # (Catatan: Plotly continuous scale bisa diatur, atau kita pisah dengan layer warna solid di bawah)
+    range_color=[0, gdf['Pct_Miskin'].max()],
+    map_style="white-bg", 
+    zoom=4, 
+    center={"lat": -0.789, "lon": 113.921},
     opacity=0.9, 
     hover_name='Kab/Kota',
-    hover_data={'Pct_Miskin': ':.2f', 'PDRB': ':.2f'}, 
+    hover_data={'Pct_Miskin': ':.2f', 'PDRB': ':.2f', 'Pct_Miskin_Clean': False}, 
     labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Triliun)'}
 )
 
-# 3. Buat Layer Bubble PDRB (Hijau)
+fig_map.update_layout(
+    map_layers=[{"below": 'traces', "sourcetype": "raster", "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]}],
+    margin={"r":0,"t":0,"l":0,"b":0} 
+)
+ 
 gdf_bubble = gdf_year.dropna(subset=['PDRB', 'centroid_x', 'centroid_y'])
 fig_bubble = px.scatter_map( 
     gdf_bubble, lat='centroid_y', lon='centroid_x', size='PDRB',
@@ -170,17 +166,13 @@ fig_bubble = px.scatter_map(
     labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Triliun)'},
     size_max=45, zoom=4
 )
+
 fig_bubble.update_traces(marker=dict(color='#00FF00', opacity=0.4))
 
-# 4. Gabungkan semuanya ke kanvas utama (fig_base): Abu-abu di bawah -> Merah Kemiskinan di tengah -> Bubble Hijau di atas
-for trace in fig_map.data:
-    fig_base.add_trace(trace)
-
 for trace in fig_bubble.data:
-    fig_base.add_trace(trace)
+    fig_map.add_trace(trace)
 
-# 5. Tampilkan ke Web Streamlit
-st.plotly_chart(fig_base, use_container_width=True)
+st.plotly_chart(fig_map, use_container_width=True)
 
 st.success(f"📌 **Catatan {selected_year}:** Peta di atas mengungkap bahwa pendaran hijau kemakmuran seringkali hanya terpusat pada titik tertentu, meninggalkan wilayah sekitarnya dalam balutan warna merah pekat.")
 st.divider()
