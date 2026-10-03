@@ -3,8 +3,6 @@ import streamlit as st
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
-import folium
-from streamlit_folium import st_folium
 
 # Mengatur konfigurasi dasar halaman web
 st.set_page_config(page_title="Dashboard UAS Visualisasi", layout="wide")
@@ -48,9 +46,9 @@ def load_data():
     # --- PROSES MERGE DATA ---
     
     # 1. Pastikan ketiga kunci wilayah menjadi string (teks)
-    gdf_batas['code'] = gdf_batas['code'].astype(str)
-    df_miskin_25['Kode_Wilayah'] = df_miskin_25['Kode_Wilayah'].astype(str)
-    df_pdrb_25['Kode_Wilayah'] = df_pdrb_25['Kode_Wilayah'].astype(str)
+    gdf_batas['code'] = gdf_batas['code'].astype(str).str.strip()
+    df_miskin_25['Kode_Wilayah'] = df_miskin_25['Kode_Wilayah'].astype(str).str.strip()
+    df_pdrb_25['Kode_Wilayah'] = df_pdrb_25['Kode_Wilayah'].astype(str).str.strip()
 
     # 2. "Sapu Bersih" Jebakan Desimal (Memaksa '11.1' kembali menjadi '11.10')
     def rapikan_kode(x):
@@ -79,182 +77,96 @@ df_pengeluaran, gdf = load_data()
 print("Blok 2 Selesai: Data berhasil dimuat!")
 
 # %% Blok 3: Membuat Tab Menu
-tab1, tab2, tab3 = st.tabs(["Peta Geospasial", "Reduksi Dimensi (PCA)", "Hierarki Pengeluaran"])
+# ... (Blok 1 dan Blok 2 load data tetap sama seperti sebelumnya) ...
 
-# %% Blok 4: Eksekusi Tab 3 (Hierarki Pengeluaran)
-with tab3:
-    st.header("Struktur Pengeluaran Rumah Tangga")
-    
-    # Membuat grafik Treemap dengan Plotly
-    fig = px.treemap(
-        df_pengeluaran, 
-        path=['Level_1', 'Level_2', 'Level_3'], 
-        values='Maret_2025', 
-        color='Pertumbuhan (%)', 
-        color_continuous_scale='RdYlGn'
+# --- MULAILAH BERCERITA (WEB STORY MODE) ---
+
+st.markdown("""
+# 🌍 Kisah Ekonomi Indonesia (2025)
+Selamat datang di eksplorasi interaktif ekonomi Nusantara. Mari kita gulir ke bawah untuk melihat bagaimana kesejahteraan dan pengeluaran masyarakat kita tersebar dari Sabang sampai Merauke.
+""")
+st.divider() # Garis pemisah estetik
+
+# --- BAGIAN 1: PETA BUMI SATELIT (PLOTLY TERBARU) ---
+st.header("1. Wajah Kesejahteraan dari Udara")
+st.write("Warna merah menunjukkan kemiskinan yang lebih tinggi, sementara besarnya lingkaran cyan mewakili kekuatan ekonomi (PDRB).")
+
+# 🌟 FITUR BARU: ANOTASI OTOMATIS (Mencari Tertinggi & Terendah)
+gdf['Pct_Miskin'] = pd.to_numeric(gdf['Pct_Miskin'], errors='coerce')
+gdf['PDRB'] = pd.to_numeric(gdf['PDRB'], errors='coerce')
+
+daerah_miskin_max = gdf.loc[gdf['Pct_Miskin'].idxmax()]
+daerah_pdrb_max = gdf.loc[gdf['PDRB'].idxmax()]
+
+# Tampilkan sebagai kartu metrik estetik di atas peta
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.error(f"🚨 Kemiskinan Tertinggi:\n**{daerah_miskin_max['Kab/Kota']}** ({daerah_miskin_max['Pct_Miskin']}%)")
+with col2:
+    st.success(f"💎 PDRB Tertinggi:\n**{daerah_pdrb_max['Kab/Kota']}** ({daerah_pdrb_max['PDRB']} Miliar)")
+with col3:
+    st.info("💡 Interaksi Peta:\nScroll untuk Zoom, arahkan kursor (hover) ke pulau/titik untuk detail.")
+
+st.divider()
+
+# 🚀 PEMBUATAN PETA PLOTLY (SUPER MULUS & ESTETIK)
+
+# Layer 1: Peta Area (Choropleth)
+fig_map = px.choropleth_map(
+    gdf,
+    geojson=gdf.geometry,
+    locations=gdf.index,
+    color='Pct_Miskin',
+    color_continuous_scale="YlOrRd",
+    map_style="white-bg", 
+    zoom=4,
+    center={"lat": -0.789, "lon": 113.921},
+    opacity=0.9, # <-- NAIK JADI 0.9: Warna akan jauh lebih tajam dan tidak "mendem"
+    hover_name='Kab/Kota',
+    # Menampilkan kedua data di kotak hover dengan format 2 desimal
+    hover_data={'Pct_Miskin': ':.2f', 'PDRB': ':.2f'}, 
+    # Merapikan nama variabel yang muncul di hover
+    labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Miliar)', 'index': 'Kode ID'}
+)
+
+# Layer Satelit Asli Esri
+fig_map.update_layout(
+    map_layers=[
+        {
+            "below": 'traces',
+            "sourcetype": "raster",
+            "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]
+        }
+    ],
+    margin={"r":0,"t":0,"l":0,"b":0} 
+)
+ 
+# Layer 2: Bubble PDRB 
+gdf_bubble = gdf.dropna(subset=['PDRB', 'centroid_x', 'centroid_y'])
+fig_bubble = px.scatter_map( 
+    gdf_bubble,
+    lat='centroid_y',
+    lon='centroid_x',
+    size='PDRB',
+    hover_name='Kab/Kota',
+    hover_data={'PDRB': ':.2f', 'Pct_Miskin': ':.2f', 'centroid_y': False, 'centroid_x': False}, 
+    labels={'Pct_Miskin': 'Kemiskinan (%)', 'PDRB': 'PDRB (Miliar)'},
+    size_max=45, 
+    zoom=4
+)
+
+# 🌟 TRIK EFEK GLOWING (Merah Pudar)
+fig_bubble.update_traces(
+    marker=dict(
+        color='#00FF00',     # Warna merah menyala
+        opacity=0.4          # Semi-transparan agar terlihat membaur (TIDAK ADA KOMA DI SINI)
+        # HAPUS BARIS 'line=dict(width=0)' KARENA TIDAK DIDUKUNG OLEH SCATTER_MAP
     )
-    
-    # Memunculkan grafik ke web
-    st.plotly_chart(fig, use_container_width=True)
-    print("Blok 4 Selesai: Grafik Treemap siap!")
+)
 
-# %% Blok 5: Eksekusi Tab 1 (Peta Geospasial)
-with tab1:
-    st.header("Peta Kesejahteraan dan Ekonomi (2025)")
-    
-    # Inisialisasi Peta Dasar Folium
-    m = folium.Map(location=[-0.789, 113.921], zoom_start=5, tiles='CartoDB positron')
+# Gabungkan Layer Bubble ke atas Layer Peta
+for trace in fig_bubble.data:
+    fig_map.add_trace(trace)
 
-    # Layer 1: Choropleth (Persentase Kemiskinan)
-    choropleth = folium.Choropleth(
-        geo_data=gdf,
-        name='Persentase Kemiskinan (%)',
-        data=gdf,
-        columns=['code', 'Pct_Miskin'],
-        key_on='feature.properties.code', # Pastikan properti di geojson Anda juga bernama persis seperti ini
-        fill_color='YlOrRd',
-        fill_opacity=0.7,
-        line_opacity=0.2,
-        legend_name='Persentase Penduduk Miskin 2025 (%)'
-    ).add_to(m)
-
-    # Tooltip Interaktif untuk Choropleth menggunakan kolom Kab/Kota
-    tooltip = folium.GeoJsonTooltip(
-        fields=['Kab/Kota', 'Pct_Miskin'],
-        aliases=['Kabupaten/Kota:', 'Kemiskinan (%):'],
-        localize=True
-    )
-    choropleth.geojson.add_child(tooltip)
-
-    # Layer 2: Proportional Symbol (PDRB ADHB)
-    pdrb_layer = folium.FeatureGroup(name="PDRB ADHB (Simbol Ukuran)")
-    for idx, row in gdf.iterrows():
-        if pd.notnull(row['PDRB']):
-            radius_size = row['PDRB'] / 10000 
-            
-            folium.CircleMarker(
-                location=[row['centroid_y'], row['centroid_x']],
-                radius=radius_size,
-                color='blue',
-                fill=True,
-                fill_color='blue',
-                fill_opacity=0.5,
-                tooltip=f"{row['Kab/Kota']} - PDRB: {row['PDRB']} Miliar"
-            ).add_to(pdrb_layer)
-
-    pdrb_layer.add_to(m)
-
-    # Kontrol Layer
-    folium.LayerControl(position='topright').add_to(m)
-
-    # Memunculkan di Web Streamlit
-    st_folium(m, width=1000, height=600)
-    print("Blok 5 Selesai: Peta Folium siap!")
-
-# #!pip install streamlit
-# import streamlit as st
-# import pandas as pd
-# import plotly.express as px
-
-# # 1. Mengatur konfigurasi dasar halaman web
-# st.set_page_config(page_title="Dashboard UAS Visualisasi", layout="wide")
-# st.title("Dashboard Profil Sosial-Ekonomi Indonesia")
-# st.write("Eksplorasi data kemiskinan, multivariat, dan struktur pengeluaran.")
-
-# # 2. Membuat Tab Menu agar 3 tugas UAS Anda rapi dalam satu web
-# tab1, tab2, tab3 = st.tabs(["Peta Geospasial", "Reduksi Dimensi (PCA)", "Hierarki Pengeluaran"])
-
-# # 3. Memasukkan visualisasi ke Tab 3
-# with tab3:
-#     st.header("Struktur Pengeluaran Rumah Tangga")
-    
-#     # Menyiapkan data sederhana
-#     data = [
-#         ['Total', 'Makanan', 'Padi-padian', 94641, 89278],
-#         ['Total', 'Makanan', 'Rokok', 94476, 91708],
-#         ['Total', 'Bukan Makanan', 'Perumahan', 391751, 398657]
-#     ]
-#     df = pd.DataFrame(data, columns=['Level_1', 'Level_2', 'Level_3', 'Maret_2024', 'Maret_2025'])
-#     df['Pertumbuhan (%)'] = ((df['Maret_2025'] - df['Maret_2024']) / df['Maret_2024']) * 100
-
-#     # Membuat grafik Treemap dengan Plotly
-#     fig = px.treemap(df, path=['Level_1', 'Level_2', 'Level_3'], values='Maret_2025', color='Pertumbuhan (%)', color_continuous_scale='RdYlGn')
-    
-#     # 4. PERINTAH AJAIB STREAMLIT: Memunculkan grafik ke web
-#     st.plotly_chart(fig, use_container_width=True)
-
-# import streamlit as st
-# import geopandas as gpd
-# import pandas as pd
-# import folium
-# from streamlit_folium import st_folium
-
-# st.title("Peta Kesejahteraan dan Ekonomi (2025)")
-
-# # 1. Membaca Data dari Folder 'data'
-# # (Asumsi data sudah dibersihkan dan memiliki kolom kunci yang sama, misal 'KODE_KAB')
-# gdf_batas = gpd.read_file('data/kab_kota.geojson')
-# df_miskin = pd.read_excel('data/Persentase_Penduduk_Miskin_dengan_Kode.xlsx')
-# df_pdrb = pd.read_excel('data/PDRB_ADHB_KODE.xlsx')
-
-# # Filter untuk mengambil tahun 2025 saja (sesuaikan nama kolom Anda)
-# df_miskin_25 = df_miskin[['Kode Wilayah', 'Kab_Kota', '2025']].rename(columns={'2025': 'Pct_Miskin'})
-# df_pdrb_25 = df_pdrb[['Kode Wilayah', '2025']].rename(columns={'2025': 'PDRB'})
-
-# # 2. Menggabungkan (Merge) Data Atribut ke Geometri Spasial
-# gdf = gdf_batas.merge(df_miskin_25, on='Kode Wilayah', how='left')
-# gdf = gdf.merge(df_pdrb_25, on='Kode Wilayah', how='left')
-
-# # Mendapatkan titik pusat (centroid) tiap kab/kota untuk meletakkan simbol lingkaran PDRB
-# gdf['centroid'] = gdf.geometry.centroid
-
-# # 3. Inisialisasi Peta Dasar Folium (Titik tengah Indonesia)
-# m = folium.Map(location=[-0.789, 113.921], zoom_start=5, tiles='CartoDB positron')
-
-# # 4. Layer 1: Choropleth (Persentase Kemiskinan)
-# choropleth = folium.Choropleth(
-#     geo_data=gdf,
-#     name='Persentase Kemiskinan (%)',
-#     data=gdf,
-#     columns=['Kode Wilayah', 'Pct_Miskin'],
-#     key_on='feature.properties.KODE_KAB',
-#     fill_color='YlOrRd', # Justifikasi warna: kuning ke merah
-#     fill_opacity=0.7,
-#     line_opacity=0.2,
-#     legend_name='Persentase Penduduk Miskin 2025 (%)'
-# ).add_to(m)
-
-# # Menambahkan Tooltip Interaktif untuk Choropleth
-# tooltip = folium.GeoJsonTooltip(
-#     fields=['Kab_Kota', 'Pct_Miskin'],
-#     aliases=['Kabupaten/Kota:', 'Kemiskinan (%):'],
-#     localize=True
-# )
-# choropleth.geojson.add_child(tooltip)
-# kode
-
-# # 5. Layer 2: Proportional Symbol (PDRB ADHB)
-# pdrb_layer = folium.FeatureGroup(name="PDRB ADHB (Simbol Ukuran)")
-# for idx, row in gdf.iterrows():
-#     if pd.notnull(row['PDRB']):
-#         # Skala ukuran lingkaran disesuaikan (dibagi angka tertentu agar tidak menutupi peta)
-#         radius_size = row['PDRB'] / 10000 
-        
-#         folium.CircleMarker(
-#             location=[row['centroid'].y, row['centroid'].x],
-#             radius=radius_size,
-#             color='blue',
-#             fill=True,
-#             fill_color='blue',
-#             fill_opacity=0.5,
-#             tooltip=f"{row['Kab_Kota']} - PDRB: {row['PDRB']} Miliar"
-#         ).add_to(pdrb_layer)
-
-# pdrb_layer.add_to(m)
-
-# # 6. Menambahkan Kontrol Layer (Bisa menyalakan/mematikan peta tertentu)
-# folium.LayerControl(position='topright').add_to(m)
-
-# # 7. Memunculkan di Web Streamlit (Zoom, Pan sudah aktif otomatis)
-# st_folium(m, width=1000, height=600)
-
+# Tampilkan Peta ke Web Streamlit
+st.plotly_chart(fig_map, use_container_width=True)
