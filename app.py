@@ -196,7 +196,7 @@ for trace in fig_bubble.data:
 # Tampilkan peta final yang sudah tertutup rapat
 st.plotly_chart(fig_base, use_container_width=True)
 
-# st.plotly_chart(fig_map, use_container_width=True)
+st.plotly_chart(fig_map, use_container_width=True)
 
 st.success(f"📌 **Catatan {selected_year}:** Peta di atas mengungkap bahwa pendaran hijau kemakmuran seringkali hanya terpusat pada titik tertentu, meninggalkan wilayah sekitarnya dalam balutan warna merah pekat.")
 st.divider()
