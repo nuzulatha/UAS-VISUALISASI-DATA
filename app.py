@@ -955,40 +955,73 @@ st.divider()
 # ---------------------------------------------------------------------
 # BAB 4: PROFIL MULTIDIMENSI (Syarat UAS Visualisasi Data Multivariat)
 # ---------------------------------------------------------------------
+# --- BAB 4: Profil Multidimensi ---
 html('<div id="bab-4"></div>')
 bab("Bab 4")
-st.markdown("### 4. Membedah Profil Kesejahteraan Multidimensi (34 Provinsi)")
-st.write("Kesejahteraan tidak hanya diukur dari uang. Mari kita lihat 8 dimensi kehidupan dari 34 Provinsi di Indonesia.")
+st.markdown("### Menyelami Profil Kesejahteraan Antar Provinsi")
+st.write("Kesejahteraan tidak hanya diukur dari aspek materi. Mari kita lihat perbandingan berbagai dimensi kehidupan di 34 Provinsi Indonesia.")
 
-# FITUR LINKING: Dropdown untuk menyorot (Highlight) Provinsi tertentu di semua grafik
-provinsi_terpilih = st.selectbox("🎯 Sorot (Highlight) Provinsi:", options=df_multi['Provinsi'].tolist(), index=10)
+# CSS untuk memperlebar kotak dropdown agar tidak terpotong (kelelep)
+st.markdown("""
+    <style>
+    /* Mengatur jarak (margin) agar dropdown tidak terlalu renggang */
+    div[data-testid="stSelectbox"] {
+        margin-top: -10px;
+        margin-bottom: 15px;
+        width: 260px !important;
+    }
+    
+    /* Mengubah background kotak selectbox dari abu-abu menjadi putih bersih & border elegan */
+    div[data-baseweb="select"] > div {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(46, 139, 87, 0.25) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# 1. PARALLEL COORDINATES (Brushing Technique)
-st.markdown("#### A. Jejaring Indikator (Parallel Coordinates)")
-st.write("💡 *Tip Interaksi (Brushing):* Klik dan seret (drag) kursor Anda pada garis sumbu vertikal di bawah ini untuk memfilter (brushing) rentang nilai tertentu. Satu garis = satu provinsi; garis gelap adalah provinsi yang Anda sorot.")
-
-kolom_numerik = df_multi.select_dtypes(include=[np.number]).columns.tolist()
-# Membuat kolom penanda warna (1 untuk provinsi terpilih, 0 untuk lainnya)
-df_multi['Color_Flag'] = np.where(df_multi['Provinsi'] == provinsi_terpilih, 1, 0)
-
-fig_par = px.parallel_coordinates(
-    df_multi, dimensions=kolom_numerik, color='Color_Flag',
-    color_continuous_scale=[[0, COLOR_SAGE], [1, COLOR_DARK]],
-    labels={col: col.replace('_', ' ') for col in kolom_numerik}
+# Filter Provinsi (Label "Sorot (Highlight)" dihapus agar lebih bersih)
+provinsi_terpilih = st.selectbox(
+    "Pilih Provinsi untuk disorot:",
+    options=df_multi['Provinsi'].tolist(),
+    index=0 # Sesuaikan index default jika ada
 )
-fig_par.update_layout(coloraxis_showscale=False, margin=dict(l=50, r=50, t=30, b=30))
-st.plotly_chart(tema(fig_par), use_container_width=True)
+# 1. PARALLEL COORDINATES (Brushing Technique)
+# --- Bagian Parallel Coordinates ---
+st.markdown("#### Jejaring Indikator Antar Dimensi")
+st.write("Menampilkan sebaran nilai seluruh indikator secara simultan untuk membandingkan karakteristik tiap provinsi.")
+
+# Buat salinan data dan pastikan provinsi yang dipilih mendapat perhatian khusus di visual
+df_para = df_multi.copy()
+# Berikan penanda warna atau urutan agar garis provinsi terpilih berada di lapisan teratas (paling jelas)
+
+fig_para = px.parallel_coordinates(
+    df_para,
+    color=df_para['Provinsi'].apply(lambda x: 1 if x == provinsi_terpilih else 0),
+    color_continuous_scale=[(0, 'rgba(46,139,87,0.18)'), (1, '#e11d48')], # Garis biasa transparan, yang dipilih merah/kontras
+    dimensions=['Persentase_Miskin', 'IPM', 'Akses_Sanitasi','Akses_Air_Minum', 'Rata_Lama_Sekolah', 'Pengeluaran_Per_Kapita', 'TPT', 'UHH'] # Sesuaikan nama kolom Anda
+)
+
+fig_para.update_layout(
+    height=500, # Menambah tinggi agar sumbu vertikal lebih leluasa dan tidak terpotong atas-bawah
+    margin=dict(l=40, r=40, t=50, b=40),
+    coloraxis_showscale=False
+)
+
+st.plotly_chart(tema(fig_para), use_container_width=True)
 
 # Membagi layar untuk PCA dan Radar Chart
 col_pca, col_radar = st.columns(2)
 
 # 2. PCA SCATTERPLOT (Dimensionality Reduction)
 with col_pca:
-    st.markdown("#### B. Peta Pengelompokan (PCA)")
+    st.markdown("#### Peta Pengelompokan Wilayah (PCA)")
     
     # Proses PCA (Reduksi 8 variabel menjadi 2 komponen utama)
     scaler = StandardScaler()
-    data_scaled = scaler.fit_transform(df_multi[kolom_numerik])
+    # Menggunakan kolom_numerik_multi sesuai definisi Anda
+    data_scaled = scaler.fit_transform(df_multi[kolom_numerik_multi])
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(data_scaled)
     
@@ -1019,21 +1052,28 @@ with col_pca:
 
 # 3. RADAR CHART (Profil Individu)
 with col_radar:
-    st.markdown(f"#### C. Jaring Laba-laba: **{provinsi_terpilih}**")
+    st.markdown(f"#### Profil Radar Indikator: **{provinsi_terpilih}**")
     
-    # Standarisasi skala 0-100 untuk radar chart agar bentuknya seimbang
-    df_radar_norm = (df_multi[kolom_numerik] - df_multi[kolom_numerik].min()) / (df_multi[kolom_numerik].max() - df_multi[kolom_numerik].min()) * 100
+    # Standarisasi skala 0-100 untuk radar chart agar bentuknya seimbang menggunakan kolom_numerik_multi
+    df_radar_norm = (df_multi[kolom_numerik_multi] - df_multi[kolom_numerik_multi].min()) / (df_multi[kolom_numerik_multi].max() - df_multi[kolom_numerik_multi].min()) * 100
     nilai_provinsi = df_radar_norm[df_multi['Provinsi'] == provinsi_terpilih].values[0]
     nilai_nasional = df_radar_norm.mean().values
 
     chart_header("Profil dibanding rata-rata nasional", "Makin menjauh dari pusat, makin tinggi nilai indikatornya (skala 0-100).")
     fig_radar = go.Figure()
-    fig_radar.add_trace(go.Scatterpolar(r=nilai_nasional, theta=kolom_numerik, fill='toself', name='Rata-rata Nasional', marker_color=COLOR_SAGE, opacity=0.5))
-    fig_radar.add_trace(go.Scatterpolar(r=nilai_provinsi, theta=kolom_numerik, fill='toself', name=provinsi_terpilih, marker_color=COLOR_DARK))
+    fig_radar.add_trace(go.Scatterpolar(r=nilai_nasional, theta=kolom_numerik_multi, fill='toself', name='Rata-rata Nasional', marker_color=COLOR_SAGE, opacity=0.5))
+    fig_radar.add_trace(go.Scatterpolar(r=nilai_provinsi, theta=kolom_numerik_multi, fill='toself', name=provinsi_terpilih, marker_color=COLOR_DARK))
     
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=False)), showlegend=True, margin=dict(l=30, r=30, t=30, b=30))
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, 100])
+        ),
+        showlegend=True,
+        height=450,
+        margin=dict(l=60, r=60, t=40, b=40) 
+    )
     st.plotly_chart(tema(fig_radar), use_container_width=True)
-
+    
 # Sekilas provinsi terpilih dibanding rata-rata nasional
 st.markdown(f"#### Sekilas: **{provinsi_terpilih}** vs Rata-rata Nasional")
 idx_prov = df_multi.index[df_multi['Provinsi'] == provinsi_terpilih][0]
