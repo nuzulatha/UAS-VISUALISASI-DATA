@@ -378,7 +378,7 @@ html(f"""
 <p class="lead">Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan.</p>
 <div class="cta-row"><a class="cta main" href="#bab-1">Mulai dari peta</a><a class="cta ghost" href="#bab-4">Langsung ke profil provinsi</a></div>
 <div class="chips">
-<div class="chip"><b>{anim_num(513)}</b><span>Kabupaten & Kota</span></div>
+<div class="chip"><b>{anim_num(514)}</b><span>Kabupaten & Kota</span></div>
 <div class="chip"><b>{anim_num(n_prov)}</b><span>Provinsi dibedah</span></div>
 <div class="chip"><b>{anim_num(ipm_terbaru, dec=True)}</b><span>Rata-rata IPM 2025</span></div>
 <div class="chip"><b>{anim_num(miskin_terbaru, dec=True)}%</b><span>Penduduk Miskin 2025</span></div>
@@ -758,7 +758,7 @@ try:
     
     # Menyusun narasi yang lebih natural, manusiawi, dan menyoroti wilayah parah
     cerita_natural = (
-        f"Dari total <b>513 kabupaten/kota</b> yang diamati pada {selected_year}, terdapat <b>{int(m_hh.sum())} daerah</b> "
+        f"Dari total <b>514 kabupaten/kota</b> yang diamati pada {selected_year}, terdapat <b>{int(m_hh.sum())} daerah</b> "
         f"yang masuk dalam kategori pusat kemiskinan. Wilayah-wilayah ini tidak hanya berstatus miskin, tetapi juga dikelilingi "
         f"oleh tetangga dengan tantangan serupa, menciptakan rantai ketertinggalan yang membutuhkan intervensi serius—terutama "
         f"di titik terparah seperti <b>{', '.join(contoh)}</b>. "
@@ -1070,7 +1070,7 @@ html("""
 <div class="card info wide"><div class="card-ico">📚</div><div>
 <div class="card-title">Catatan Metodologi & Sumber Data</div>
 <ul style="margin-bottom: 0;">
-<li><b>Sumber Data:</b> Data indikator sosial-ekonomi (Kemiskinan, PDRB, Pengeluaran, dan Indikator Kesejahteraan) pada level 513 Kabupaten/Kota dan 34 Provinsi di Indonesia.</li>
+<li><b>Sumber Data:</b> Data indikator sosial-ekonomi (Kemiskinan, PDRB, Pengeluaran, dan Indikator Kesejahteraan) pada level 514 Kabupaten/Kota dan 34 Provinsi di Indonesia.</li>
 <li><b>Analisis Spasial:</b> Indeks <i>Moran's I</i> digunakan untuk mengukur tingkat autokorelasi spasial, mengidentifikasi seberapa kuat kondisi suatu wilayah dipengaruhi oleh tetangga geografisnya.</li>
 <li><b>Reduksi Dimensi (PCA):</b> <i>Principal Component Analysis</i> diaplikasikan untuk menyederhanakan 8 variabel kesejahteraan yang kompleks menjadi 2 komponen utama yang lebih mudah divisualisasikan, tanpa kehilangan banyak informasi (varians).</li>
 </ul></div></div>
