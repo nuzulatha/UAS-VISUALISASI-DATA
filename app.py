@@ -788,22 +788,23 @@ SKALA_PERTUMBUHAN = [[0, '#e0f2fe'], [0.5, "#68b6d8"], [1, '#0369a1']]
 total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
 total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
 
-# 1. Kelompokkan berdasarkan Level 1 dan jumlahkan nilainya
-l1 = df_pengeluaran.groupby('Level_1')['Maret_2025'].sum()
+# --- Total & fakta ringkas untuk narasi ---
 
-# 2. Bersihkan index/kategori yang mengandung kata "Total"
-# KUNCI PERBAIKAN: Hanya hapus jika namanya PERSIS "TOTAL" atau "TOTAL PENGELUARAN"
-# Ini menjaga agar kategori seperti "Total Makanan" tidak ikut terhapus.
+# 1. Ambil data spesifik di Level 3 (rincian komoditas)
+df_l3 = df_pengeluaran.dropna(subset=['Level_3'])
+
+# 2. Pastikan baris "Total" tidak ikut terhitung sebagai komoditas
 hapus_kata = ['TOTAL', 'TOTAL PENGELUARAN']
-l1_bersih = l1[~l1.index.astype(str).str.contains('Total', case=False, na=False)]
+df_l3_bersih = df_l3[~df_l3['Level_3'].astype(str).str.strip().str.upper().isin(hapus_kata)]
 
-# 3. Cari komoditas terbesar dari data yang sudah bersih
-nama_l1 = l1_bersih.idxmax()
-nilai_l1 = l1_bersih.max()
+# 3. Cari komoditas terbesar dari Level 3
+top_l3 = df_l3_bersih.loc[df_l3_bersih['Maret_2025'].idxmax()]
+nama_komoditas = top_l3['Level_3']
+nilai_komoditas = top_l3['Maret_2025']
 
-# 4. Hitung porsi. Menggunakan sum() dari l1_bersih jauh lebih aman dan akurat
-total_semua = l1_bersih.sum()
-porsi_l1 = (nilai_l1 / total_semua) * 100
+# 4. Ambil angka total keseluruhan (dari nilai absolut tertinggi di seluruh data)
+total_semua = df_pengeluaran['Maret_2025'].max() 
+porsi_komoditas = (nilai_komoditas / total_semua) * 100
 total_format = f"{total_semua:,.0f}".replace(',', '.') 
 
 # --- Perhitungan Pertumbuhan ---
