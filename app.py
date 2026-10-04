@@ -833,7 +833,7 @@ c_t1, c_t2 = st.columns([2.4, 1])
 with c_t1:
     st.plotly_chart(tema(fig_tree), use_container_width=True)
 with c_t2:
-    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Struktur anggaran rumah tangga didominasi oleh kelompok <b>Bukan Makanan</b>, di mana pos <b>{nama_l1}</b> sendiri menyedot porsi paling besar yaitu <b>{fmt_id(porsi_l1, 1)}%</b> dari total pengeluaran.")
+    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Struktur anggaran rumah tangga didominasi oleh kelompok <b>Bukan Makanan</b>, di mana pos <b>{nama_komoditas}</b> sendiri menyedot porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari total pengeluaran.")
     st.markdown("<br>", unsafe_allow_html=True)
     card("warn", "📈", "Pertumbuhan Anggaran", f"Dibandingkan tahun 2024, komoditas <b>{naik_1['Komoditas']}</b> mengalami lonjakan anggaran paling tinggi dengan pertumbuhan mencapai <b>{fmt_id(naik_1['Pertumbuhan (%)'], 1)}%</b>.")
 
