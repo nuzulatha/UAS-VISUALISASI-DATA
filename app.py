@@ -376,7 +376,7 @@ html(f"""
 <h1>Di Antara Angka dan Realita</h1>
 <div class="sub">Jejak Kesejahteraan Indonesia (2021 - 2025)</div>
 <p class="lead">Setiap jengkal tanah di Nusantara menyimpan ceritanya sendiri. Ada wilayah yang roda ekonominya berputar kencang, namun ada pula yang masih berjuang melepaskan diri dari jerat kemiskinan.</p>
-<div class="cta-row"><a class="cta main" href="#bab-1">Mulai dari peta</a><a class="cta ghost" href="#bab-4">Lompat ke profil provinsi</a></div>
+<div class="cta-row"><a class="cta main" href="#bab-1">Mulai dari peta</a><a class="cta ghost" href="#bab-4">Langsung ke profil provinsi</a></div>
 <div class="chips">
 <div class="chip"><b>{anim_num(513)}</b><span>Kabupaten & Kota</span></div>
 <div class="chip"><b>{anim_num(n_prov)}</b><span>Provinsi dibedah</span></div>
@@ -560,7 +560,8 @@ for trace in fig_bubble.data:
 # 5. TAMPILKAN PETA KE STREAMLIT (Ini yang tadi terlewat!)
 st.plotly_chart(tema(fig_map), use_container_width=True)
 
-card("good", "📌", f"Catatan {selected_year}", "Peta di atas mengungkap bahwa pendaran hijau kemakmuran seringkali hanya terpusat pada titik tertentu, meninggalkan wilayah sekitarnya dalam balutan warna merah pekat.")
+card("good", "📌", f"Catatan {selected_year}", "Wilayah yang kosong (tidak berwarna) pada peta menunjukkan bahwa data untuk kabupaten/kota tersebut tidak tersedia atau tidak tercatat pada tahun observasi.")
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Eksplorasi lanjutan: cerita bergulir (scrollytelling)
 st.markdown("<br>", unsafe_allow_html=True)
@@ -675,75 +676,6 @@ fase_st(3, "Denyut Ekonomi, Lima Tahun",
      f"Total perputaran uang (PDRB) seluruh kabupaten/kota di Indonesia {'tumbuh' if g >= 0 else 'menyusut'} <b>{fmt_id(abs(g), 1)}%</b> sejak 2021. Dari Rp {fmt_id(p0, 0)} Triliun menjadi Rp {fmt_id(p1, 0)} Triliun pada 2025. Pertanyaan tersisa: apakah pertumbuhan ini dinikmati merata?",
      "Tren Akumulasi PDRB Nasional", fig_line,
      "Nilai Total PDRB Kabupaten/Kota dari tahun ke tahun.")
-
-# st.markdown("<br>", unsafe_allow_html=True)
-# st.markdown("#### 🧭 Eksplorasi Lanjutan")
-# st.write("Gulir pelan ke bawah. Setiap fase memunculkan satu cerita baru, digambarkan dengan piktogram.")
-# top_n = st.radio("Jumlah daerah teratas pada Fase 2 dan 3", [5, 10], format_func=lambda n: f"Top {n}", horizontal=True, key="top_daerah")
-
-# tahun_semua = [2021, 2022, 2023, 2024, 2025]
-# agr = {t: agregat(t) for t in tahun_semua}
-
-
-# def fase(no, judul, isi, vis_judul, vis_html, catatan=""):
-#     cat = f'<div class="vis-note">{catatan}</div>' if catatan else ""
-#     html(f'<section class="story"><div class="story-card"><div class="badge">Fase {no}</div><h4>{judul}</h4><p>{isi}</p></div>'
-#          f'<div class="rail"></div><div class="story-vis"><div class="vis-title">{vis_judul}</div><div class="vis-panel">{vis_html}</div>{cat}</div></section>')
-
-
-# def fmt_unit(u):
-#     return fmt_id(u, 0 if float(u).is_integer() else 1)
-
-
-# # Fase 1: 100 orang
-# full1 = int(m_now)
-# sel1 = ikon(PERSON, m_now - full1, ghost=True)
-# sisa1 = max(0, 100 - full1 - 1)
-# cells1 = "".join(ikon(PERSON) for _ in range(full1)) + sel1 + "".join(ikon(PERSON, 0, ghost=True) for _ in range(sisa1))
-# fase(1, "Seandainya Satu Daerah Dihuni 100 Orang",
-#      f"Pada {selected_year}, rata-rata kabupaten/kota memiliki <b>{fmt_id(m_now)}%</b> penduduk yang hidup di bawah garis kemiskinan. Bayangkan satu daerah yang dihuni 100 orang: sebanyak inilah yang berada di sana. Arahkan kursor ke ikon untuk melihatnya lebih dekat.",
-#      f"Potret {selected_year}", f'<div class="grid100 pic-bad">{cells1}</div>',
-#      "1 ikon = 1 dari 100 orang. Ikon merah = hidup di bawah garis kemiskinan.")
-
-# # Fase 2: daerah paling miskin
-# d2 = gdf_year.dropna(subset=['Kab/Kota', 'Pct_Miskin']).nlargest(top_n, 'Pct_Miskin')
-# unit2 = nice_unit(d2['Pct_Miskin'].max())
-# top2 = d2.iloc[0]
-# fase(2, f"{top_n} Daerah yang Paling Berat",
-#      f"Di <b>{top2['Kab/Kota']}</b>, sekitar <b>{fmt_id(top2['Pct_Miskin'] / 10, 1)}</b> dari setiap 10 penduduk hidup di bawah garis kemiskinan. Rata-rata {top_n} daerah teratas mencapai <b>{fmt_id(d2['Pct_Miskin'].mean())}%</b>, sementara rata-rata seluruh daerah {fmt_id(m_now)}%.",
-#      f"Kemiskinan Tertinggi {selected_year}",
-#      f'<div class="pic-bad">{pic_rows([(r["Kab/Kota"], r["Pct_Miskin"]) for _, r in d2.iterrows()], PERSON, unit2, lambda v: f"{fmt_id(v)}%")}</div>',
-#      f"1 ikon = {fmt_unit(unit2)} poin persen penduduk miskin.")
-
-# # Fase 3: PDRB tertinggi
-# d3 = gdf_year.dropna(subset=['Kab/Kota', 'PDRB']).nlargest(top_n, 'PDRB')
-# unit3 = nice_unit(d3['PDRB'].max())
-# top3 = d3.iloc[0]
-# share3 = d3['PDRB'].sum() / p_now * 100 if p_now else 0
-# fase(3, "Di Mana Rupiah Berputar",
-#      f"<b>{top3['Kab/Kota']}</b> memimpin dengan PDRB <b>{fmt_id(top3['PDRB'])} Triliun</b>. {top_n} daerah teratas menyumbang <b>{fmt_id(share3, 1)}%</b> dari total PDRB seluruh kabupaten/kota pada {selected_year}.",
-#      f"PDRB Tertinggi {selected_year}",
-#      f'<div class="pic-gold">{pic_rows([(r["Kab/Kota"], r["PDRB"]) for _, r in d3.iterrows()], COIN, unit3, lambda v: f"{fmt_id(v, 1)} T")}</div>',
-#      f"1 koin = {fmt_unit(unit3)} Triliun Rupiah.")
-
-# # Fase 4: tren kemiskinan nasional
-# m0, m1 = agr[2021][0], agr[2025][0]
-# dm = m1 - m0
-# fase(4, "Lima Tahun Perjalanan",
-#      f"Dari 2021 ke 2025, rata-rata kemiskinan kabupaten/kota {'turun' if dm < 0 else 'naik'} <b>{fmt_id(abs(dm))} poin</b>, dari {fmt_id(m0)}% menjadi {fmt_id(m1)}%. Baris yang disorot adalah tahun yang sedang Anda pilih.",
-#      "Tren Kemiskinan per Tahun",
-#      f'<div class="pic-bad">{pic_rows([(str(t), agr[t][0]) for t in tahun_semua], PERSON, 1.0, lambda v: f"{fmt_id(v)}%", hl=selected_year)}</div>',
-#      "1 ikon = 1 poin persen penduduk miskin.")
-
-# # Fase 5: tren PDRB nasional
-# p0, p1 = agr[2021][1], agr[2025][1]
-# g = (p1 - p0) / p0 * 100 if p0 else 0
-# unit5 = nice_unit(max(agr[t][1] for t in tahun_semua))
-# fase(5, "Denyut Ekonomi, Lima Tahun",
-#      f"Total PDRB seluruh kabupaten/kota {'tumbuh' if g >= 0 else 'menyusut'} <b>{fmt_id(abs(g), 1)}%</b>, dari Rp {fmt_id(p0, 0)} Triliun (2021) menjadi Rp {fmt_id(p1, 0)} Triliun (2025). Pertanyaannya: apakah pertumbuhan itu sudah dinikmati merata?",
-#      "Tren PDRB per Tahun",
-#      f'<div class="pic-gold">{pic_rows([(str(t), agr[t][1]) for t in tahun_semua], COIN, unit5, lambda v: f"{fmt_id(v, 0)} T", hl=selected_year)}</div>',
-#      f"1 koin = {fmt_unit(unit5)} Triliun Rupiah.")
 
 st.divider()
 
@@ -1013,6 +945,7 @@ st.plotly_chart(tema(fig_para), use_container_width=True)
 
 # Membagi layar untuk PCA dan Radar Chart
 col_pca, col_radar = st.columns(2)
+kolom_numerik = df_multi.select_dtypes(include=[np.number]).columns.tolist()
 
 # 2. PCA SCATTERPLOT (Dimensionality Reduction)
 with col_pca:
@@ -1020,8 +953,8 @@ with col_pca:
     
     # Proses PCA (Reduksi 8 variabel menjadi 2 komponen utama)
     scaler = StandardScaler()
-    # Menggunakan kolom_numerik_multi sesuai definisi Anda
-    data_scaled = scaler.fit_transform(df_multi[kolom_numerik_multi])
+    # Menggunakan kolom_numerik sesuai definisi Anda
+    data_scaled = scaler.fit_transform(df_multi[kolom_numerik])
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(data_scaled)
     
@@ -1034,7 +967,7 @@ with col_pca:
     nama_pencilan = df_pca.nlargest(3, 'Jarak')['Provinsi'].tolist()
 
     chart_header(f"Varian yang dijelaskan: {pca.explained_variance_ratio_.sum()*100:.1f}%",
-                 f"Makin dekat dua titik, makin mirip profilnya. Titik oranye = {provinsi_terpilih}. Label hanya untuk provinsi terpilih dan 3 yang paling terpencil.")
+                 f"Makin dekat dua titik, makin mirip profilnya. <i> Label hanya untuk provinsi terpilih dan 3 yang paling terpencil.</i>")
     fig_pca = px.scatter(
         df_pca, x='PC1', y='PC2', color='Status', hover_name='Provinsi', hover_data={'Status': False, 'Jarak': False, 'PC1': ':.2f', 'PC2': ':.2f'},
         color_discrete_map={'Disorot': COLOR_HIGHLIGHT, 'Lainnya': COLOR_SAGE}
@@ -1054,15 +987,15 @@ with col_pca:
 with col_radar:
     st.markdown(f"#### Profil Radar Indikator: **{provinsi_terpilih}**")
     
-    # Standarisasi skala 0-100 untuk radar chart agar bentuknya seimbang menggunakan kolom_numerik_multi
-    df_radar_norm = (df_multi[kolom_numerik_multi] - df_multi[kolom_numerik_multi].min()) / (df_multi[kolom_numerik_multi].max() - df_multi[kolom_numerik_multi].min()) * 100
+    # Standarisasi skala 0-100 untuk radar chart agar bentuknya seimbang menggunakan kolom_numerik
+    df_radar_norm = (df_multi[kolom_numerik] - df_multi[kolom_numerik].min()) / (df_multi[kolom_numerik].max() - df_multi[kolom_numerik].min()) * 100
     nilai_provinsi = df_radar_norm[df_multi['Provinsi'] == provinsi_terpilih].values[0]
     nilai_nasional = df_radar_norm.mean().values
 
-    chart_header("Profil dibanding rata-rata nasional", "Makin menjauh dari pusat, makin tinggi nilai indikatornya (skala 0-100).")
+    chart_header("Profil dibanding rata-rata nasional", "Makin menjauh dari pusat, makin tinggi nilai indikatornya (skala 0-100). <i>Klik label di legenda (kanan) untuk memilih garis.</i>")
     fig_radar = go.Figure()
-    fig_radar.add_trace(go.Scatterpolar(r=nilai_nasional, theta=kolom_numerik_multi, fill='toself', name='Rata-rata Nasional', marker_color=COLOR_SAGE, opacity=0.5))
-    fig_radar.add_trace(go.Scatterpolar(r=nilai_provinsi, theta=kolom_numerik_multi, fill='toself', name=provinsi_terpilih, marker_color=COLOR_DARK))
+    fig_radar.add_trace(go.Scatterpolar(r=nilai_nasional, theta=kolom_numerik, fill='toself', name='Rata-rata Nasional', marker_color=COLOR_SAGE, opacity=0.5))
+    fig_radar.add_trace(go.Scatterpolar(r=nilai_provinsi, theta=kolom_numerik, fill='toself', name=provinsi_terpilih, marker_color=COLOR_DARK))
     
     fig_radar.update_layout(
         polar=dict(
@@ -1073,7 +1006,22 @@ with col_radar:
         margin=dict(l=60, r=60, t=40, b=40) 
     )
     st.plotly_chart(tema(fig_radar), use_container_width=True)
-    
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("#### Interpretasi Analisis Multidimensi")
+
+# Membagi menjadi 3 kolom untuk 3 kartu interpretasi
+c_int1, c_int2, c_int3 = st.columns(3)
+
+with c_int1:
+    card("info", "🧩", "Kelompok Mayoritas", "Titik-titik yang menumpuk di tengah menunjukkan tingkat kesejahteraan mayoritas wilayah cenderung serupa dan mendekati rata-rata nasional.")
+with c_int2:
+    card("good", "🚀", "Anomali Positif", "<b>DKI Jakarta</b> terpisah jauh sebagai pencilan positif karena mendominasi indikator ekonomi, infrastruktur, dan IPM dibanding wilayah lain.")
+with c_int3:
+    card("bad", "🚨", "Prioritas Daerah", "<b>Papua Pegunungan & Tengah</b> terlempar sebagai pencilan ekstrem akibat ketertinggalan ekonomi hampir seluruh layanan dasar.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # Sekilas provinsi terpilih dibanding rata-rata nasional
 st.markdown(f"#### Sekilas: **{provinsi_terpilih}** vs Rata-rata Nasional")
 idx_prov = df_multi.index[df_multi['Provinsi'] == provinsi_terpilih][0]
@@ -1087,19 +1035,19 @@ for cs, kc in zip(cols_sk, kolom_sekilas):
               delta=f"{nilai - rata:+.2f} vs nasional".replace('.', ','),
               delta_color="inverse" if kc in kolom_negatif else "normal")
 
-# D. Peringkat antarprovinsi (Top 5/10, provinsi terpilih selalu ikut ditampilkan)
 # D. Peringkat antarprovinsi (Hanya Top 5, provinsi terpilih selalu ikut ditampilkan)
-st.markdown("#### D. Peringkat Antarprovinsi")
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("#### Pemeringkatan Antar Provinsi Berdasarkan Indikator")
 cp1, cp2 = st.columns([2, 1.4])
 with cp1:
     indikator_pilih = st.selectbox("Pilih indikator:", kolom_numerik, format_func=lambda c: c.replace('_', ' '))
 with cp2:
-    urutan = st.radio("Urutan", ["Tertinggi dulu", "Terendah dulu"], horizontal=True)
+    urutan = st.radio("Urutan", ["Tertinggi", "Terendah"], horizontal=True)
 
 # Patenkan langsung ke angka 5
 top_p = 5 
 
-df_rank = df_multi[['Provinsi', indikator_pilih]].dropna().sort_values(indikator_pilih, ascending=(urutan == "Terendah dulu")).reset_index(drop=True)
+df_rank = df_multi[['Provinsi', indikator_pilih]].dropna().sort_values(indikator_pilih, ascending=(urutan == "Terendah")).reset_index(drop=True)
 df_rank['Peringkat'] = df_rank.index + 1
 df_show = df_rank.head(top_p)
 if provinsi_terpilih not in df_show['Provinsi'].values:
@@ -1107,8 +1055,8 @@ if provinsi_terpilih not in df_show['Provinsi'].values:
 df_show = df_show.copy()
 df_show['Label'] = df_show['Peringkat'].astype(str) + ". " + df_show['Provinsi']
 df_show['Status'] = np.where(df_show['Provinsi'] == provinsi_terpilih, 'Disorot', 'Lainnya')
-chart_header(f"Top {top_p} Provinsi: {indikator_pilih.replace('_', ' ')}",
-             f"Menampilkan {top_p} provinsi teratas. Jika {provinsi_terpilih} tidak masuk, ia ditambahkan di bawah lengkap dengan peringkatnya.")
+chart_header(f"Provinsi Teratas: {indikator_pilih.replace('_', ' ')}",
+             f"Menampilkan 5 provinsi teratas. Jika {provinsi_terpilih} tidak masuk, ia ditambahkan di bawah lengkap dengan peringkatnya.")
 fig_rank = px.bar(df_show, x=indikator_pilih, y='Label', orientation='h', color='Status',
                   color_discrete_map={'Disorot': COLOR_HIGHLIGHT, 'Lainnya': COLOR_SAGE},
                   labels={indikator_pilih: indikator_pilih.replace('_', ' '), 'Label': ''}, height=90 + 38 * len(df_show))
@@ -1116,14 +1064,15 @@ fig_rank.update_yaxes(autorange='reversed')
 fig_rank.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
 st.plotly_chart(tema(fig_rank), use_container_width=True)
 
-# 4. KOTAK INTERPRETASI
-html(f"""
-<div class="card info wide"><div class="card-ico">🔎</div><div>
-<div class="card-title">Interpretasi Analisis Multidimensi</div>
-<ul>
-<li><b>Pengelompokan (Klastering):</b> Pada grafik PCA (kiri), provinsi yang posisinya saling berdekatan menandakan mereka memiliki karakteristik sosial-ekonomi yang sangat mirip di ke-8 variabel tersebut.</li>
-<li><b>Pencilan (Outlier):</b> Provinsi yang posisinya terasing/menjauh dari kerumunan utama di grafik PCA adalah provinsi dengan anomali. Pada data ini yang paling terpencil adalah <b>{', '.join(nama_pencilan)}</b>.</li>
-<li><b>Profil Radar:</b> Bentuk jaring yang condong mendekati batas luar menandakan performa yang sangat baik di atas rata-rata nasional pada indikator tersebut.</li>
+# 4. KOTAK METADATA & METODOLOGI (Sebagai penutup dashboard)
+st.markdown("<br>", unsafe_allow_html=True)
+html("""
+<div class="card info wide"><div class="card-ico">📚</div><div>
+<div class="card-title">Catatan Metodologi & Sumber Data</div>
+<ul style="margin-bottom: 0;">
+<li><b>Sumber Data:</b> Data indikator sosial-ekonomi (Kemiskinan, PDRB, Pengeluaran, dan Indikator Kesejahteraan) pada level 513 Kabupaten/Kota dan 34 Provinsi di Indonesia.</li>
+<li><b>Analisis Spasial:</b> Indeks <i>Moran's I</i> digunakan untuk mengukur tingkat autokorelasi spasial, mengidentifikasi seberapa kuat kondisi suatu wilayah dipengaruhi oleh tetangga geografisnya.</li>
+<li><b>Reduksi Dimensi (PCA):</b> <i>Principal Component Analysis</i> diaplikasikan untuk menyederhanakan 8 variabel kesejahteraan yang kompleks menjadi 2 komponen utama yang lebih mudah divisualisasikan, tanpa kehilangan banyak informasi (varians).</li>
 </ul></div></div>
 """)
 
