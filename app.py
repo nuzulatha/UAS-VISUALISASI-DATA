@@ -791,11 +791,12 @@ total_format = f"{total_pengeluaran:,.0f}".replace(',', '.')
 # --- Total & fakta ringkas untuk narasi ---
 
 # 1. Ambil data spesifik di Level 3 (rincian komoditas)
+total_semua = df_pengeluaran['Maret_2025'].max()
 df_l3 = df_pengeluaran.dropna(subset=['Level_3'])
 
 # 2. Pastikan baris "Total" tidak ikut terhitung sebagai komoditas
 hapus_kata = ['TOTAL', 'TOTAL PENGELUARAN']
-df_l3_bersih = df_l3[~df_l3['Level_3'].astype(str).str.strip().str.upper().isin(hapus_kata)]
+df_l3_bersih = df_l3[df_l3['Maret_2025'] < total_semua]
 
 # 3. Cari komoditas terbesar dari Level 3
 top_l3 = df_l3_bersih.loc[df_l3_bersih['Maret_2025'].idxmax()]
@@ -833,7 +834,7 @@ c_t1, c_t2 = st.columns([2.4, 1])
 with c_t1:
     st.plotly_chart(tema(fig_tree), use_container_width=True)
 with c_t2:
-    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Struktur anggaran rumah tangga didominasi oleh kelompok <b>Bukan Makanan</b>, di mana pos <b>{nama_komoditas}</b> sendiri menyedot porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari total pengeluaran.")
+    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Anggaran Rumah Tangga didominasi kelompok <b>Bukan Makanan</b>, di mana <b>{nama_komoditas}</b> sendiri memiliki porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari total pengeluaran.")
     st.markdown("<br>", unsafe_allow_html=True)
     card("warn", "📈", "Pertumbuhan Anggaran", f"Dibandingkan tahun 2024, komoditas <b>{naik_1['Komoditas']}</b> mengalami lonjakan anggaran paling tinggi dengan pertumbuhan mencapai <b>{fmt_id(naik_1['Pertumbuhan (%)'], 1)}%</b>.")
 
