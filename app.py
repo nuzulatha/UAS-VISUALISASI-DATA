@@ -787,24 +787,30 @@ SKALA_PERTUMBUHAN = [[0, '#e0f2fe'], [0.5, "#68b6d8"], [1, '#0369a1']]
 # Total & fakta ringkas untuk narasi
 total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
 total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
-l1 = df_pengeluaran.groupby('Level_1')['Maret_2025'].sum().sort_values(ascending=False)
 
-# 1. Ambil data Level 1 dan buang baris yang mengandung kata "Total"
-df_l1 = df_pengeluaran.dropna(subset=['Level_1'])
-df_l1_bersih = df_l1[~df_l1['Level_1'].str.contains('Total', case=False, na=False)]
+# 1. Kelompokkan berdasarkan Level 1 dan jumlahkan nilainya
+l1 = df_pengeluaran.groupby('Level_1')['Maret_2025'].sum()
 
-# 2. Cari komoditas terbesar dari data yang sudah bersih
-top_l1 = df_l1_bersih.loc[df_l1_bersih['Maret_2025'].idxmax()]
-nama_l1 = top_l1['Level_1']
+# 2. Bersihkan index/kategori yang mengandung kata "Total"
+l1_bersih = l1[~l1.index.astype(str).str.contains('Total', case=False, na=False)]
 
-# 3. Hitung porsinya terhadap total keseluruhan (pastikan total_semua mengambil angka total yang benar)
-total_semua = df_pengeluaran['Maret_2025'].max() # atau total yang sudah Anda definisikan
-porsi_l1 = (top_l1['Maret_2025'] / total_semua) * 100
+# 3. Cari komoditas terbesar dari data yang sudah bersih
+nama_l1 = l1_bersih.idxmax()
+nilai_l1 = l1_bersih.max()
 
+# 4. Hitung porsi. Menggunakan sum() dari l1_bersih jauh lebih aman dan akurat
+total_semua = l1_bersih.sum()
+porsi_l1 = (nilai_l1 / total_semua) * 100
+total_format = f"{total_semua:,.0f}".replace(',', '.') 
+
+# --- Perhitungan Pertumbuhan ---
 df_g = df_pengeluaran.replace([np.inf, -np.inf], np.nan).dropna(subset=['Pertumbuhan (%)']).copy()
 df_g['Komoditas'] = df_g['Level_3'].fillna(df_g['Level_2']).fillna(df_g['Level_1'])
 naik_1 = df_g.nlargest(1, 'Pertumbuhan (%)').iloc[0]
 turun_1 = df_g.nsmallest(1, 'Pertumbuhan (%)').iloc[0]
+
+# --- Representasi 1: Treemap ---
+chart_header("Treemap Struktur Pengeluaran", "Luas Kotak - Besar Pengeluaran Rumah Tangga Maret 2025 & Warna - Pertumbuhan Dibanding Maret 2024.")
 
 # Representasi 1: Treemap
 chart_header("Treemap Struktur Pengeluaran", "Luas Kotak - Besar Pengeluaran Rumah Tangga Maret 2025 & " \
