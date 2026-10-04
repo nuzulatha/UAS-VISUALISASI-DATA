@@ -789,22 +789,23 @@ total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
 total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
 
 # --- Total & fakta ringkas untuk narasi ---
+# --- Total & fakta ringkas untuk narasi ---
 
-# 1. Ambil data spesifik di Level 3 (rincian komoditas)
-total_semua = df_pengeluaran['Maret_2025'].max()
+# 1. Ambil data Level 3 murni
 df_l3 = df_pengeluaran.dropna(subset=['Level_3'])
 
-# 2. Pastikan baris "Total" tidak ikut terhitung sebagai komoditas
-hapus_kata = ['TOTAL', 'TOTAL PENGELUARAN']
-df_l3_bersih = df_l3[df_l3['Maret_2025'] < total_semua]
+# 2. Pastikan bersih dari baris rekapan 'TOTAL'
+df_l3_bersih = df_l3[~df_l3['Level_3'].astype(str).str.upper().str.contains('TOTAL', na=False)]
 
-# 3. Cari komoditas terbesar dari Level 3
+# 3. KUNCI PERBAIKAN: Hitung TOTAL KESELURUHAN dengan MENJUMLAHKAN (sum) seluruh rincian, bukan max()!
+total_semua = df_l3_bersih['Maret_2025'].sum()
+
+# 4. Cari komoditas terbesar (Perumahan dan Fasilitas RT)
 top_l3 = df_l3_bersih.loc[df_l3_bersih['Maret_2025'].idxmax()]
 nama_komoditas = top_l3['Level_3']
 nilai_komoditas = top_l3['Maret_2025']
 
-# 4. Ambil angka total keseluruhan (dari nilai absolut tertinggi di seluruh data)
-total_semua = df_pengeluaran['Maret_2025'].max() 
+# 5. Hitung porsi persentase yang sebenarnya
 porsi_komoditas = (nilai_komoditas / total_semua) * 100
 total_format = f"{total_semua:,.0f}".replace(',', '.') 
 
@@ -834,7 +835,7 @@ c_t1, c_t2 = st.columns([2.4, 1])
 with c_t1:
     st.plotly_chart(tema(fig_tree), use_container_width=True)
 with c_t2:
-    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Anggaran Rumah Tangga didominasi kelompok <b>Bukan Makanan</b>, di mana <b>{nama_komoditas}</b> sendiri memiliki porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari total pengeluaran.")
+    card("info", "📦", "Pusat Pengeluaran Terbesar", f"Anggaran Rumah Tangga didominasi kelompok <b>Bukan Makanan</b>, di mana <b>{nama_komoditas}</b> sendiri memiliki porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari semua kategori.")
     st.markdown("<br>", unsafe_allow_html=True)
     card("warn", "📈", "Pertumbuhan Anggaran", f"Dibandingkan tahun 2024, komoditas <b>{naik_1['Komoditas']}</b> mengalami lonjakan anggaran paling tinggi dengan pertumbuhan mencapai <b>{fmt_id(naik_1['Pertumbuhan (%)'], 1)}%</b>.")
 
