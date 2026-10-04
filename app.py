@@ -788,7 +788,19 @@ SKALA_PERTUMBUHAN = [[0, '#e0f2fe'], [0.5, "#68b6d8"], [1, '#0369a1']]
 total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
 total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
 l1 = df_pengeluaran.groupby('Level_1')['Maret_2025'].sum().sort_values(ascending=False)
-nama_l1, porsi_l1 = l1.index[0], l1.iloc[0] / total_pengeluaran * 100
+
+# 1. Ambil data Level 1 dan buang baris yang mengandung kata "Total"
+df_l1 = df_pengeluaran.dropna(subset=['Level_1'])
+df_l1_bersih = df_l1[~df_l1['Level_1'].str.contains('Total', case=False, na=False)]
+
+# 2. Cari komoditas terbesar dari data yang sudah bersih
+top_l1 = df_l1_bersih.loc[df_l1_bersih['Maret_2025'].idxmax()]
+nama_l1 = top_l1['Level_1']
+
+# 3. Hitung porsinya terhadap total keseluruhan (pastikan total_semua mengambil angka total yang benar)
+total_semua = df_pengeluaran['Maret_2025'].max() # atau total yang sudah Anda definisikan
+porsi_l1 = (top_l1['Maret_2025'] / total_semua) * 100
+
 df_g = df_pengeluaran.replace([np.inf, -np.inf], np.nan).dropna(subset=['Pertumbuhan (%)']).copy()
 df_g['Komoditas'] = df_g['Level_3'].fillna(df_g['Level_2']).fillna(df_g['Level_1'])
 naik_1 = df_g.nlargest(1, 'Pertumbuhan (%)').iloc[0]
@@ -891,7 +903,7 @@ st.divider()
 html('<div id="bab-4"></div>')
 bab("Bab 4")
 st.markdown("### Menyelami Profil Kesejahteraan Antar Provinsi")
-st.write("Kesejahteraan tidak hanya diukur dari aspek materi. Mari kita lihat perbandingan berbagai dimensi kehidupan di 34 Provinsi Indonesia.")
+st.write("Kesejahteraan tidak hanya diukur dari aspek materi. Mari kita lihat perbandingan berbagai dimensi kehidupan di 38 Provinsi Indonesia.")
 
 # CSS untuk memperlebar kotak dropdown agar tidak terpotong (kelelep)
 st.markdown("""
@@ -1070,7 +1082,7 @@ html("""
 <div class="card info wide"><div class="card-ico">📚</div><div>
 <div class="card-title">Catatan Metodologi & Sumber Data</div>
 <ul style="margin-bottom: 0;">
-<li><b>Sumber Data:</b> Data indikator sosial-ekonomi (Kemiskinan, PDRB, Pengeluaran, dan Indikator Kesejahteraan) pada level 514 Kabupaten/Kota dan 34 Provinsi di Indonesia.</li>
+<li><b>Sumber Data:</b> Data indikator sosial-ekonomi (Kemiskinan, PDRB, Pengeluaran, dan Indikator Kesejahteraan) pada level 514 Kabupaten/Kota dan 38 Provinsi di Indonesia.</li>
 <li><b>Analisis Spasial:</b> Indeks <i>Moran's I</i> digunakan untuk mengukur tingkat autokorelasi spasial, mengidentifikasi seberapa kuat kondisi suatu wilayah dipengaruhi oleh tetangga geografisnya.</li>
 <li><b>Reduksi Dimensi (PCA):</b> <i>Principal Component Analysis</i> diaplikasikan untuk menyederhanakan 8 variabel kesejahteraan yang kompleks menjadi 2 komponen utama yang lebih mudah divisualisasikan, tanpa kehilangan banyak informasi (varians).</li>
 </ul></div></div>
