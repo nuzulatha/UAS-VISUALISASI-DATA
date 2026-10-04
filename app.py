@@ -792,6 +792,9 @@ total_format = f"{total_pengeluaran:,.0f}".replace(',', '.')
 l1 = df_pengeluaran.groupby('Level_1')['Maret_2025'].sum()
 
 # 2. Bersihkan index/kategori yang mengandung kata "Total"
+# KUNCI PERBAIKAN: Hanya hapus jika namanya PERSIS "TOTAL" atau "TOTAL PENGELUARAN"
+# Ini menjaga agar kategori seperti "Total Makanan" tidak ikut terhapus.
+hapus_kata = ['TOTAL', 'TOTAL PENGELUARAN']
 l1_bersih = l1[~l1.index.astype(str).str.contains('Total', case=False, na=False)]
 
 # 3. Cari komoditas terbesar dari data yang sudah bersih
@@ -810,9 +813,6 @@ naik_1 = df_g.nlargest(1, 'Pertumbuhan (%)').iloc[0]
 turun_1 = df_g.nsmallest(1, 'Pertumbuhan (%)').iloc[0]
 
 # --- Representasi 1: Treemap ---
-chart_header("Treemap Struktur Pengeluaran", "Luas Kotak - Besar Pengeluaran Rumah Tangga Maret 2025 & Warna - Pertumbuhan Dibanding Maret 2024.")
-
-# Representasi 1: Treemap
 chart_header("Treemap Struktur Pengeluaran", "Luas Kotak - Besar Pengeluaran Rumah Tangga Maret 2025 & " \
 "Warna - Pertumbuhan Dibanding Maret 2024.")
 fig_tree = px.treemap(
