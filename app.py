@@ -837,7 +837,7 @@ with c_t1:
 with c_t2:
     card("info", "📦", "Pusat Pengeluaran Terbesar", f"Anggaran Rumah Tangga didominasi kelompok <b>Bukan Makanan</b>, di mana <b>{nama_komoditas}</b> sendiri memiliki porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari semua kategori.")
     st.markdown("<br>", unsafe_allow_html=True)
-    card("warn", "📈", "Pertumbuhan Anggaran", f"Dibandingkan tahun 2024, komoditas <b>{naik_1['Komoditas']}</b> mengalami lonjakan anggaran paling tinggi dengan pertumbuhan mencapai <b>{fmt_id(naik_1['Pertumbuhan (%)'], 1)}%</b>.")
+    card("warn", "📈", "Pertumbuhan Anggaran", f"Dibandingkan tahun 2024, komoditas <b>{naik_1['Komoditas']}</b> mengalami lonjakan paling tinggi dengan pertumbuhan mencapai <b>{fmt_id(naik_1['Pertumbuhan (%)'], 1)}%</b>.")
 
 st.divider() # Garis pemisah antar grafik
 
