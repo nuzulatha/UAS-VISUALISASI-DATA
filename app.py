@@ -425,6 +425,16 @@ html(f"""
 </section>
 """)
 
+def info_sumber():
+  st.markdown(
+      "<p style='font-size: 0.8rem; color: #557268; margin-top: -10px;'>"
+      "<b>Sumber:</b> BPS, Data Disparitas Ekonomi Indonesia (2021–2025), "
+      "Tersedia online: <a href='https://www.bps.go.id' target='_blank'>"
+      "https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+      "</p>",
+      unsafe_allow_html=True,
+  )
+
 # --- BAB 1: Peta ---
 html('<div id="bab-1"></div>')
 bab("Bab 1")
@@ -559,6 +569,16 @@ for trace in fig_bubble.data:
 
 # 5. TAMPILKAN PETA KE STREAMLIT (Ini yang tadi terlewat!)
 st.plotly_chart(tema(fig_map), use_container_width=True)
+
+# Tambahkan keterangan sumber resmi sesuai permintaan
+st.markdown(
+    "<p style='font-size: 0.8rem; color: #557268; margin-top: -10px;'>"
+    "<b>Sumber:</b> BPS, PDRB ADHB & Persentase Penduduk Miskin"
+    " (2021–2025), Tersedia online: <a href='https://www.bps.go.id'"
+    " target='_blank'>https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+    "</p>",
+    unsafe_allow_html=True,
+)
 
 card("good", "📌", f"Catatan {selected_year}", "Wilayah yang kosong (tidak berwarna) pada peta menunjukkan bahwa data untuk kabupaten/kota tersebut tidak tersedia atau tidak tercatat pada tahun observasi.")
 st.markdown("<br>", unsafe_allow_html=True)
@@ -743,6 +763,16 @@ try:
         fig_scatter.update_layout(legend=dict(orientation='h', y=-0.22, title=None), margin=dict(l=10, r=10, t=10, b=10))
         st.plotly_chart(tema(fig_scatter), use_container_width=True)
 
+        # Tambahkan keterangan sumber resmi sesuai permintaan
+        st.markdown(
+            "<p style='font-size: 0.8rem; color: #557268; margin-top: -10px;'>"
+            "<b>Sumber:</b> BPS, Persentase Penduduk Miskin"
+            " (2021–2025), Tersedia online: <a href='https://www.bps.go.id'"
+            " target='_blank'>https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+
     # Empat tipe wilayah, dijelaskan dengan bahasa cerita
     st.markdown("#### Empat Tipe Wilayah dalam Analisis")
     st.write("Dengan membandingkan tingkat kemiskinan sebuah daerah dengan wilayah tetangganya, kita mendapati empat kategori:")
@@ -789,8 +819,6 @@ total_pengeluaran = df_pengeluaran['Maret_2025'].sum()
 total_format = f"{total_pengeluaran:,.0f}".replace(',', '.') 
 
 # --- Total & fakta ringkas untuk narasi ---
-# --- Total & fakta ringkas untuk narasi ---
-
 # 1. Ambil data Level 3 murni
 df_l3 = df_pengeluaran.dropna(subset=['Level_3'])
 
@@ -834,6 +862,15 @@ fig_tree.update_layout(separators=",.", margin=dict(l=10, r=10, t=10, b=10))
 c_t1, c_t2 = st.columns([2.4, 1])
 with c_t1:
     st.plotly_chart(tema(fig_tree), use_container_width=True)
+    st.markdown(
+        "<p style='font-size: 0.8rem; color: #557268; margin-top: -8px;'>"
+        "<b>Sumber:</b> BPS, Rata-Rata Pengeluaran Per Kapita Sebulan Menurut Kelompok"
+        " Komoditas (Maret 2024–2025), Tersedia online: <a"
+        " href='https://www.bps.go.id' target='_blank'>https://www.bps.go.id</a>"
+        " [Diakses pada 5 Oktober 2026]."
+        "</p>",
+        unsafe_allow_html=True,
+    )
 with c_t2:
     card("info", "📦", "Pusat Pengeluaran Terbesar", f"Anggaran Rumah Tangga didominasi kelompok <b>Bukan Makanan</b>, di mana <b>{nama_komoditas}</b> sendiri memiliki porsi paling besar yaitu <b>{fmt_id(porsi_komoditas, 1)}%</b> dari semua kategori.")
     st.markdown("<br>", unsafe_allow_html=True)
@@ -898,6 +935,15 @@ c_s1, c_s2 = st.columns([2.2, 1], vertical_alignment="center")
 
 with c_s1:
     st.plotly_chart(tema(fig_sun), use_container_width=True)
+    st.markdown(
+            "<p style='font-size: 0.8rem; color: #557268; margin-top: -8px;'>"
+            "<b>Sumber:</b> BPS, Rata-Rata Pengeluaran Per Kapita Sebulan Menurut Kelompok"
+            " Komoditas (Maret 2024–2025), Tersedia online: <a"
+            " href='https://www.bps.go.id' target='_blank'>https://www.bps.go.id</a>"
+            " [Diakses pada 5 Oktober 2026]."
+            "</p>",
+            unsafe_allow_html=True,
+    )
 
 with c_s2:
     card("info", "🎯", "Komoditas Terbesar", f"Dari cincin terluar rincian komoditas, pos <b>{nama_komoditas_tertinggi}</b> menjadi penyedot anggaran paling mendominasi dengan nilai mencapai <b>Rp {nilai_komoditas_tertinggi}</b>.")
@@ -963,6 +1009,14 @@ fig_para.update_layout(
 )
 
 st.plotly_chart(tema(fig_para), use_container_width=True)
+st.markdown(
+    "<p style='font-size: 0.8rem; color: #557268; margin-top: -8px;'>"
+    "<b>Sumber:</b> BPS, Kompilasi Indikator Kesejahteraan Provinsi (2025),"
+    " Tersedia online: <a href='https://www.bps.go.id' target='_blank'>"
+    "https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+    "</p>",
+    unsafe_allow_html=True,
+)
 
 # Membagi layar untuk PCA dan Radar Chart
 col_pca, col_radar = st.columns(2)
@@ -1003,7 +1057,7 @@ with col_pca:
                                bgcolor="rgba(255,255,255,.9)", borderpad=3)
     fig_pca.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
     st.plotly_chart(tema(fig_pca), use_container_width=True)
-
+    
 # 3. RADAR CHART (Profil Individu)
 with col_radar:
     st.markdown(f"#### Profil Radar Indikator: **{provinsi_terpilih}**")
@@ -1027,6 +1081,15 @@ with col_radar:
         margin=dict(l=60, r=60, t=40, b=40) 
     )
     st.plotly_chart(tema(fig_radar), use_container_width=True)
+
+st.markdown(
+        "<p style='font-size: 0.8rem; color: #557268; margin-top: -8px;'>"
+        "<b>Sumber:</b> BPS, Kompilasi Indikator Kesejahteraan Provinsi (2025),"
+        " Tersedia online: <a href='https://www.bps.go.id' target='_blank'>"
+        "https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+        "</p>",
+        unsafe_allow_html=True,
+)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("#### Interpretasi Analisis Multidimensi")
@@ -1084,6 +1147,14 @@ fig_rank = px.bar(df_show, x=indikator_pilih, y='Label', orientation='h', color=
 fig_rank.update_yaxes(autorange='reversed')
 fig_rank.update_layout(showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
 st.plotly_chart(tema(fig_rank), use_container_width=True)
+st.markdown(
+        "<p style='font-size: 0.8rem; color: #557268; margin-top: -8px;'>"
+        "<b>Sumber:</b> BPS, Kompilasi Indikator Kesejahteraan Provinsi (2025),"
+        " Tersedia online: <a href='https://www.bps.go.id' target='_blank'>"
+        "https://www.bps.go.id</a> [Diakses pada 5 Oktober 2026]."
+        "</p>",
+        unsafe_allow_html=True,
+)
 
 # 4. KOTAK METADATA & METODOLOGI (Sebagai penutup dashboard)
 st.markdown("<br>", unsafe_allow_html=True)
@@ -1097,4 +1168,4 @@ html("""
 </ul></div></div>
 """)
 
-st.markdown("<br><br><center><p style='color: gray;'><i>Sebuah eksplorasi data visual. Dibuat untuk Tugas Akhir Visualisasi Data.</i></p></center>", unsafe_allow_html=True)
+st.markdown("<br><br><center><p style='color: gray;'><i> <b>Nuzul Athaillah</b> - 222313305@stis.ac.id</i></p></center>", unsafe_allow_html=True)
